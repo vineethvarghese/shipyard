@@ -409,10 +409,10 @@ const RULING_RULES =
 const UNFINISHED_RULES =
   'You reported this work as unfinished (a stub, or an acceptance criterion not satisfied). Finish each item and list its id in `fixed`; ' +
   'if it cannot be finished inside your touch set, keep it in stubsRemaining or acNotSatisfied with the reason.';
-const rulesFor = (groups) => (groups.humanOnly ? HUMAN_RULES : groups.rulingsOnly ? RULING_RULES : groups.unfinishedOnly ? UNFINISHED_RULES : AUTHOR_RULES);
 const HUMAN_RULES =
   'These are the human\'s change requests from the merge gate. Make each change and list its id in `fixed`. They cannot be rebutted; ' +
   'if one cannot be done inside your touch set or would break SLICE.md, TEST_PLAN.md or INVARIANTS.md, say why in architectureConcerns.';
+const rulesFor = (groups) => (groups.humanOnly ? HUMAN_RULES : groups.rulingsOnly ? RULING_RULES : groups.unfinishedOnly ? UNFINISHED_RULES : AUTHOR_RULES);
 
 // ---------------------------------------------------------------------------------------------
 // Step 1–2: test plan and its gate
