@@ -6,6 +6,8 @@
 Checks:
   * every *.json file parses;
   * every contract has $id, title, x-contract-version and a root object type, and a sane schema shape;
+  * .claude-plugin/plugin.json and marketplace.json exist, are well shaped, and name the same plugin
+    (so `/plugin install shipyard@shipyard` works);
   * agents/*.md frontmatter: name (= file name), description, tools, and only known keys;
   * every skill folder has SKILL.md (name = folder, description) and CHANGELOG.md;
   * registry/roles.json references existing agents, skills, contracts and compute classes,
@@ -155,6 +157,82 @@ def check_contracts(root, problems):
         if schema.get("type") != "object":
             problems.append("%s: root type must be \"object\"" % where)
         _schema_shape(schema, where, problems)
+
+
+# ---------------------------------------------------------------- plugin manifest
+
+KEBAB_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
+
+def check_manifest(root, problems):
+    """The marketplace install path (`/plugin install shipyard@shipyard`) needs both manifest files.
+
+    Keeps them internally consistent so the documented one-liner never silently breaks.
+    """
+    mdir = os.path.join(root, ".claude-plugin")
+    plugin_path = os.path.join(mdir, "plugin.json")
+    market_path = os.path.join(mdir, "marketplace.json")
+
+    if not os.path.isfile(plugin_path):
+        problems.append(".claude-plugin/plugin.json: missing (needed for `/plugin install`)")
+    if not os.path.isfile(market_path):
+        problems.append(".claude-plugin/marketplace.json: missing (needed for `/plugin marketplace add`)")
+
+    plugin_name = None
+    if os.path.isfile(plugin_path):
+        where = ".claude-plugin/plugin.json"
+        try:
+            plugin = load_json(plugin_path)
+        except ValueError:
+            plugin = None  # reported by check_json_files
+        if plugin is not None:
+            if not isinstance(plugin, dict):
+                problems.append("%s: root must be an object" % where)
+            else:
+                plugin_name = plugin.get("name")
+                if not plugin_name:
+                    problems.append("%s: missing name" % where)
+                elif not KEBAB_RE.match(str(plugin_name)):
+                    problems.append("%s: name %r must be kebab-case" % (where, plugin_name))
+                version = plugin.get("version")
+                if version and not re.match(r"^\d+\.\d+\.\d+$", str(version)):
+                    problems.append("%s: version %r is not MAJOR.MINOR.PATCH" % (where, version))
+
+    if os.path.isfile(market_path):
+        where = ".claude-plugin/marketplace.json"
+        try:
+            market = load_json(market_path)
+        except ValueError:
+            market = None  # reported by check_json_files
+        if market is not None:
+            if not isinstance(market, dict):
+                problems.append("%s: root must be an object" % where)
+            else:
+                if not market.get("name"):
+                    problems.append("%s: missing name" % where)
+                owner = market.get("owner")
+                if not isinstance(owner, dict) or not owner.get("name"):
+                    problems.append("%s: owner must be an object with a name" % where)
+                plugins = market.get("plugins")
+                if not isinstance(plugins, list) or not plugins:
+                    problems.append("%s: plugins must be a non-empty list" % where)
+                else:
+                    entry_names = set()
+                    for i, entry in enumerate(plugins):
+                        ew = "%s: plugins[%d]" % (where, i)
+                        if not isinstance(entry, dict):
+                            problems.append("%s: must be an object" % ew)
+                            continue
+                        if not entry.get("name"):
+                            problems.append("%s: missing name" % ew)
+                        else:
+                            entry_names.add(entry["name"])
+                        if not entry.get("source"):
+                            problems.append("%s: missing source" % ew)
+                    if plugin_name and plugin_name not in entry_names:
+                        problems.append("%s: no plugin entry named %r to match plugin.json; "
+                                        "`/plugin install %s@%s` would fail"
+                                        % (where, plugin_name, plugin_name, market.get("name")))
 
 
 # ---------------------------------------------------------------- agents + skills
@@ -383,8 +461,8 @@ def check_banned_words(root, problems):
             problems.append("%s: banned word %r in the path" % (r, m.group(1)))
 
 
-CHECKS = (check_json_files, check_contracts, check_agents, check_skills, check_registry, check_workflows,
-          check_hero_diagram, check_banned_words)
+CHECKS = (check_json_files, check_contracts, check_manifest, check_agents, check_skills, check_registry,
+          check_workflows, check_hero_diagram, check_banned_words)
 
 
 def run_checks(root):

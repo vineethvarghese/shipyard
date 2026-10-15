@@ -14,27 +14,57 @@ This page takes you from install to your first merged slice.
 
 ## Install
 
-From the marketplace:
+You can install Shipyard two ways. Both give you the same plugin; pick whichever suits you.
+
+### Option A — from the marketplace
+
+A marketplace is just a catalog file (`.claude-plugin/marketplace.json`) served from the git repo — there is
+no store to upload to and no account to create. Run this inside Claude Code:
 
 ```text
-/plugin marketplace add <owner>/shipyard
+/plugin marketplace add vineethvarghese/shipyard
 /plugin install shipyard@shipyard
 ```
 
-Replace `<owner>` with the GitHub owner of the Shipyard repo you use.
+The first command reads the catalog from the repo; the second installs the `shipyard` plugin from the
+`shipyard` marketplace. If you forked the repo, replace `vineethvarghese` with your own GitHub owner.
 
-From a local clone, for trying it out or for development:
+### Option B — without a marketplace (local clone)
+
+Point Claude Code straight at a clone. Good for trying it out, for development, or when you would rather not
+use the marketplace at all:
 
 ```bash
+git clone https://github.com/vineethvarghese/shipyard.git
 claude --plugin-dir ./shipyard
 ```
 
-## Allow the routine commands
+Claude Code discovers the agents, skills, hooks and workflows by convention — no extra setup.
 
-Shipyard runs many small commands: `git status`, `git diff`, your test command and its own scripts. Without
-allow rules you will be asked about each one. The repo ships `settings.example.json` with a safe set of allow
-rules. Copy its `permissions.allow` entries into your project's `.claude/settings.json`. Add your own test
-command too, for example `Bash(npm test:*)`, `Bash(go test:*)`, `Bash(pytest:*)` or `Bash(cargo test:*)`.
+## Set up
+
+Run the guided setup in your project folder:
+
+```text
+/shipyard:setup
+```
+
+It does three things, talking you through each:
+
+1. **Preflight** — checks Claude Code's version, Python, that you are in a git repository, and that dynamic
+   workflows are not disabled. Anything wrong is reported with the fix.
+2. **Permissions** — Shipyard runs many small commands (`git status`, `git diff`, your test command, its own
+   scripts and the three workflows). Without allow rules you are asked about each one. Setup merges the rules
+   from `settings.example.json` into your project's `.claude/settings.json` without touching anything already
+   there, and is safe to run again.
+3. **Your test command** — it asks what runs your tests (for example `npm test`, `pytest`, `go test ./...` or
+   `cargo test`) and allows it, so you are not prompted mid-run.
+
+The new permission rules are read when a session starts, so they take effect the next time you launch — which
+in the normal flow is the coordinator you start in the next step. Nothing extra to restart.
+
+Prefer to do it by hand? Copy the `permissions.allow` and `permissions.deny` entries from
+`settings.example.json` into `.claude/settings.json` yourself, and add your test command.
 
 Allow rules only save prompts. The hooks still apply. See [guardrails.md](guardrails.md).
 

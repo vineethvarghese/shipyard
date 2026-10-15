@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "shipyard",
+  "owner": {
+    "name": "Vineeth Varghese"
+  },
+  "plugins": [
+    {
+      "name": "shipyard",
+      "source": "./",
+      "description": "Ships a large coding job as a chain of small, independently mergeable slices."
+    }
+  ]
+}

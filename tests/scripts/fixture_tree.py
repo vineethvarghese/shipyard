@@ -76,6 +76,13 @@ def make_tree(root):
     write(root, "skills/demo-skill/SKILL.md", SKILL_MD)
     write(root, "skills/demo-skill/CHANGELOG.md", "# Changelog\n\n## 1.0.0 — 2026-10-15\n\nInitial release.\n")
     write(root, "workflows/demo.js", WORKFLOW_JS)
+    write(root, ".claude-plugin/plugin.json", {"name": "fixture", "version": "1.0.0",
+                                               "description": "A fixture plugin."})
+    write(root, ".claude-plugin/marketplace.json", {
+        "name": "fixture",
+        "owner": {"name": "Fixture Owner"},
+        "plugins": [{"name": "fixture", "source": "./", "description": "A fixture plugin."}],
+    })
     write(root, "README.md", "# Fixture\n\nSee [the agents](agents/alpha.md).\n")
     write(root, "registry/roles.json", {
         "computeClasses": {"DEEP": {"model": "opus", "effort": "high"},

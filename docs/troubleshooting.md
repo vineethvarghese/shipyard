@@ -49,6 +49,31 @@ review as clean.
 | State missing | `.ai/state.json` is missing or invalid. Run `python3 <plugin root>/scripts/shipyard_state.py show`. |
 | Secret | The text looks like a secret. Replace the value with `<REDACTED>` and note where the secret lives. |
 
+## Confirm the guardrails are actually running
+
+**Why:** every hook first reads `agent_type` from its input and does nothing unless it starts with `shipyard:`
+(so your normal sessions are never touched). The whole safety story therefore depends on Claude Code sending
+that prefixed agent type for Shipyard agents. The tests check the scripts and their wiring, but only a live
+session proves the runtime sends the prefix. This one-minute check confirms it.
+
+1. Launch the coordinator with hook debug on:
+
+   ```bash
+   SHIPYARD_HOOK_DEBUG=1 claude --agent shipyard:coordinator --model opus --effort max
+   ```
+
+2. Give it any small task so it runs a command or two, and watch stderr. You want to **not** see this line for
+   Shipyard agents:
+
+   ```text
+   [shipyard-hook:protect-branches] agent_type '...' is not a Shipyard agent; allowing
+   ```
+
+   If every hook prints that for the coordinator and its specialists, the agent type is not arriving as
+   `shipyard:<name>`, so the guardrails are inert. Check that you launched with `--agent shipyard:coordinator`
+   (not a renamed copy) and that the plugin is enabled in `/plugin`. A hook that recognises a Shipyard agent
+   stays quiet unless it blocks, or prints its own `[shipyard-hook:...]` reasoning.
+
 ## Resume after an interruption
 
 Start the coordinator again in the same folder and say "resume". See
@@ -89,9 +114,10 @@ back to the planner.
 
 **Cause:** routine commands are not in your allow list.
 
-**Fix:** copy the `permissions.allow` entries from `settings.example.json` into your project's
-`.claude/settings.json`. Add your test command, for example `Bash(npm test:*)`. Hooks still apply, so this does
-not loosen the hard rules.
+**Fix:** run `/shipyard:setup`, which merges the allow rules from `settings.example.json` into your project's
+`.claude/settings.json` and records your test command. (Or copy the `permissions.allow` entries by hand and add
+your test command, for example `Bash(npm test:*)`.) The rules apply the next time you launch. Hooks still apply,
+so this does not loosen the hard rules.
 
 ## Cost is too high
 
