@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin.json",
+  "name": "shipyard",
+  "version": "0.1.0",
+  "description": "Ships a large coding job as a chain of small, independently mergeable slices. Test plan first, specialist agents build and review each slice, you approve the plan and every merge, and it never touches main.",
+  "author": {
+    "name": "Vineeth Varghese"
+  },
+  "homepage": "https://github.com/vineethvarghese/shipyard",
+  "repository": "https://github.com/vineethvarghese/shipyard",
+  "license": "MIT",
+  "keywords": [
+    "workflow",
+    "multi-agent",
+    "code-review",
+    "refactor",
+    "migration"
+  ]
+}

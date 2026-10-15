@@ -161,6 +161,41 @@ class Workflows(CheckTestCase):
         self.assertProblem("must start with `export const meta`")
 
 
+class Manifest(CheckTestCase):
+    def test_missing_plugin_json(self):
+        os.remove(os.path.join(self.root, ".claude-plugin", "plugin.json"))
+        self.assertProblem(".claude-plugin/plugin.json: missing")
+
+    def test_missing_marketplace_json(self):
+        os.remove(os.path.join(self.root, ".claude-plugin", "marketplace.json"))
+        self.assertProblem(".claude-plugin/marketplace.json: missing")
+
+    def test_plugin_name_not_kebab(self):
+        write(self.root, ".claude-plugin/plugin.json", {"name": "Not Kebab", "version": "1.0.0"})
+        self.assertProblem("name 'Not Kebab' must be kebab-case")
+
+    def test_bad_version(self):
+        write(self.root, ".claude-plugin/plugin.json", {"name": "fixture", "version": "1.0"})
+        self.assertProblem("version '1.0' is not MAJOR.MINOR.PATCH")
+
+    def test_name_mismatch_breaks_install(self):
+        write(self.root, ".claude-plugin/plugin.json", {"name": "renamed", "version": "1.0.0"})
+        self.assertProblem("no plugin entry named 'renamed'")
+
+    def test_marketplace_needs_owner_and_plugins(self):
+        write(self.root, ".claude-plugin/marketplace.json", {"name": "fixture"})
+        problems = "\n".join(self.problems())
+        self.assertIn("owner must be an object with a name", problems)
+        self.assertIn("plugins must be a non-empty list", problems)
+
+    def test_plugin_entry_needs_name_and_source(self):
+        write(self.root, ".claude-plugin/marketplace.json",
+              {"name": "fixture", "owner": {"name": "O"}, "plugins": [{}]})
+        problems = "\n".join(self.problems())
+        self.assertIn("plugins[0]: missing name", problems)
+        self.assertIn("plugins[0]: missing source", problems)
+
+
 class HeroDiagram(CheckTestCase):
     def test_readme_must_match_hero(self):
         write(self.root, "docs/diagrams/01-hero.mmd", "flowchart LR\n  A --> B\n")
