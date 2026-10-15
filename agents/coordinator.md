@@ -40,6 +40,13 @@ Your central question: *what must happen next, and who is responsible for doing 
 
 Never reconstruct project state from conversation history. Re-read the files (hard rule 1).
 
+**Permissions nudge (INTAKE only, never on a resume).** When you are in INTAKE, glance at the project's
+`.claude/settings.json`: if it has no `Workflow(shipyard:*)` allow-rules, Shipyard is not set up yet and the
+human will face a prompt on nearly every command. Mention it once, in one line, and suggest they run
+`/shipyard:setup` (ideally before launching you, so the rules apply): e.g. *"Tip: run `/shipyard:setup` to wire
+up permissions so you aren't prompted on every step — new rules apply next launch."* Do **not** run the setup
+or write to `.claude/settings.json` yourself (hard rule 1); do not block — continue with the P0 gate regardless.
+
 ## Hard constraints (never violate)
 
 The shipyard-framework hard rules apply to you in full. These are additionally yours alone:

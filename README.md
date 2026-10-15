@@ -46,19 +46,31 @@ flowchart LR
 
 ## Quickstart
 
-1. **Install** (inside Claude Code):
+1. **Install.** Pick one:
+
+   **From the marketplace** (inside Claude Code):
 
    ```text
-   /plugin marketplace add <owner>/shipyard
+   /plugin marketplace add vineethvarghese/shipyard
    /plugin install shipyard@shipyard
    ```
 
-   Or try it from a local clone: `claude --plugin-dir ./shipyard`.
+   **Without a marketplace** — point Claude Code straight at a local clone:
 
-2. **Copy the settings.** Merge [`settings.example.json`](settings.example.json) into your project's
-   `.claude/settings.json`. It allows routine read-only git commands and the three Shipyard workflows without a
-   prompt, and denies `git push`.
-   Add your own test command, for example `Bash(npm test:*)` or `Bash(pytest:*)`.
+   ```bash
+   git clone https://github.com/vineethvarghese/shipyard.git
+   claude --plugin-dir ./shipyard
+   ```
+
+2. **Set up** — run the guided setup in your project folder:
+
+   ```text
+   /shipyard:setup
+   ```
+
+   It checks your environment, merges Shipyard's permission rules into `.claude/settings.json` without touching
+   your own, and asks for your test command — so you aren't prompted on every step. Answer a couple of questions
+   and you're done. (Prefer to do it by hand? Merge [`settings.example.json`](settings.example.json) yourself.)
 
 3. **Launch** the coordinator as the main session, in your project folder:
 
@@ -107,12 +119,13 @@ Per-agent pages (generated): [docs/agents/README.md](docs/agents/README.md).
 ```text
 .claude-plugin/     plugin.json and marketplace.json
 agents/             13 agent shells (identity, jurisdiction, inputs, constraints, return contract)
+commands/           setup.md — the /shipyard:setup guided install
 skills/             shipyard-framework (shared contract) + one capability skill per ability
 registry/roles.json role → agent, compute per mode, routing triggers, contract
 contracts/          JSON Schemas for every agent return block and .ai/state.json
 workflows/          discover.js, plan.js, slice.js — the saved workflows
 hooks/              hooks.json, hook scripts and their tests
-scripts/            state helper, contract validator, repo checks, doc generator, link checker
+scripts/            state helper, contract validator, repo checks, settings installer, doc generator, link checker
 tests/              workflow tests (node --test) and script tests (unittest)
 evals/              plugin evals for the workflow and each ability
 docs/               guides, ADRs, diagrams and generated agent pages
