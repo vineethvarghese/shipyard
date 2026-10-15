@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/state.schema.json",
+  "title": "Shipyard state (.ai/state.json)",
+  "description": "Machine-readable project state. Written only by the coordinator; read by hooks and workflows.",
+  "x-contract-version": "1.1.0",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "project": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "INTAKE",
+        "DISCOVERY",
+        "BRAINSTORMING",
+        "PLANNING",
+        "DELIVERY_PLANNING",
+        "AWAITING_PLAN_APPROVAL",
+        "IMPLEMENTING",
+        "COMPLETE",
+        "BLOCKED"
+      ],
+      "description": "Project status. BRAINSTORMING and DELIVERY_PLANNING are accepted for compatibility; the coordinator records them only as phase-log labels, because status changes only between workflows."
+    },
+    "featureBranch": {
+      "type": "string"
+    },
+    "baseBranch": {
+      "type": "string"
+    },
+    "protectedBranches": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "activeSlice": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sliceBranch": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notesBranch": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Local branch that holds snapshots of .ai/ (default <featureBranch>-shipyard). Written only by `shipyard_state.py snapshot`; never checked out, never merged."
+    },
+    "brainstormBreadth": {
+      "type": "integer",
+      "enum": [
+        0,
+        1,
+        2
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "project",
+    "status",
+    "featureBranch",
+    "baseBranch",
+    "protectedBranches",
+    "activeSlice",
+    "sliceBranch"
+  ],
+  "additionalProperties": false
+}

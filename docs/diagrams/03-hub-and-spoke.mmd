@@ -1,0 +1,34 @@
+flowchart TD
+    you(["You"])
+    coord["shipyard:coordinator"]
+    you ---|"chat only"| coord
+    subgraph WF["Saved workflows, launched by the coordinator"]
+        wd["discover: P1 to P3"]
+        wp["plan: P5 to P7"]
+        ws["slice: P9, one slice"]
+    end
+    subgraph PL["Planning"]
+        di["discovery"]
+        gf["goldfish"]
+        ar["architect"]
+        pn["planner"]
+    end
+    subgraph BU["Build"]
+        im["implementer"]
+        ve["verifier"]
+    end
+    subgraph RV["Review"]
+        cr["code-reviewer"]
+        sr["security-reviewer"]
+        ct["contract-reviewer"]
+        ir["integration-reviewer"]
+        rr["reliability-reviewer"]
+        sp["simplicity-reviewer"]
+    end
+    coord -->|"Workflow tool"| WF
+    coord -->|"Agent tool, allowlist only"| PL
+    WF -->|"agent calls"| PL
+    WF -->|"agent calls"| BU
+    WF -->|"agent calls"| RV
+    note["Specialists have no Agent tool, so they call no one"]
+    RV -.- note

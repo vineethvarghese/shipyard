@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "1.0",
+  "project": "link-expiry",
+  "status": "IMPLEMENTING",
+  "featureBranch": "feature/link-expiry",
+  "baseBranch": "main",
+  "protectedBranches": [
+    "main",
+    "master"
+  ],
+  "activeSlice": "02",
+  "sliceBranch": "feature/link-expiry-slice-02",
+  "notesBranch": "feature/link-expiry-shipyard",
+  "brainstormBreadth": 1
+}

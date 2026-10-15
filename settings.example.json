@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(npm test:*)",
+      "Bash(pytest:*)",
+      "Bash(go test:*)",
+      "Bash(cargo test:*)",
+      "Workflow(shipyard:discover)",
+      "Workflow(shipyard:plan)",
+      "Workflow(shipyard:slice)"
+    ],
+    "deny": [
+      "Bash(git push:*)"
+    ]
+  }
+}

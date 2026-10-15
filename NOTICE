@@ -1,0 +1,38 @@
+Shipyard
+Copyright (c) 2026 The Shipyard authors
+Licensed under the MIT License (see LICENSE).
+
+This project builds on, adapts or credits the following work.
+
+1. Elephant/goldfish method
+   https://github.com/vshvedov/elephant-goldfish — MIT License.
+   The P2 brainstorm (a sealed "elephant" take written first, then parallel
+   context-free "goldfish" agents, each on one lens, then synthesis), the
+   cold readiness check of each slice spec, and the brainstorm-elephant-goldfish
+   capability skill are adapted from this method.
+
+2. "Cranky Old Sam" reviewer persona — MIT License.
+   The simplicity reviewer's voice (the blunt question "should this layer exist
+   at all?") is adapted from the MIT-licensed "Cranky Old Sam" reviewer persona.
+
+3. Contributed review profiles.
+   - The code reviewer (shipyard:code-reviewer) is adapted from a contributed
+     code-and-test review agent.
+   - The security reviewer (shipyard:security-reviewer) and the security-audit
+     capability skill are adapted from a contributed security-audit profile.
+
+4. Books — ideas paraphrased, never quoted.
+   The capability skills describe ideas from these books in their own words and
+   cite them by author, title and topic. No text from them is reproduced.
+   - John Ousterhout, "A Philosophy of Software Design" (complexity, deep
+     modules, information hiding) — code-clarity.
+   - Brendan Gregg, "Systems Performance" (methodologies such as USE,
+     workload characterisation) — performance.
+   - Eric Evans, "Domain-Driven Design" (ubiquitous language, bounded
+     contexts, aggregates) — domain-design.
+
+5. Earlier framework.
+   Shipyard is a generic port of an earlier multi-agent delivery framework for
+   a different command-line agent harness. See MIGRATION.md.
+
+Trademarks belong to their owners. Their mention implies no endorsement.

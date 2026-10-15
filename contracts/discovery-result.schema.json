@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://shipyard.dev/contracts/discovery-result.schema.json",
+  "title": "Discovery result",
+  "description": "Return block of discovery (SCAN, DRAFT, SYNTHESIZE, QUESTIONS).",
+  "x-contract-version": "1.0.0",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "SCAN",
+        "DRAFT",
+        "SYNTHESIZE",
+        "QUESTIONS"
+      ]
+    },
+    "artifactsWritten": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "facts": {
+      "type": "object",
+      "properties": {
+        "SPECIFIED": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "DERIVED": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ASSUMED": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "UNRESOLVED": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "SPECIFIED",
+        "DERIVED",
+        "ASSUMED",
+        "UNRESOLVED"
+      ],
+      "additionalProperties": false
+    },
+    "consumersFound": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "validationTiers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "LOCAL",
+              "SHARED"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "environment"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "topConcepts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "lensesThatProposedIt": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "summary",
+          "lensesThatProposedIt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "disagreements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "whyItMatters": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "blocking": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "question",
+          "whyItMatters",
+          "evidence",
+          "options",
+          "recommendation",
+          "blocking"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "highestLeverageQuestion": {
+      "type": "string"
+    },
+    "couldNotInspect": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "humanInputRequested": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "blocked": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "evidence",
+        "recommendation",
+        "blocked"
+      ],
+      "additionalProperties": false,
+      "description": "HUMAN_INPUT_REQUESTED block for the coordinator, or null"
+    }
+  },
+  "required": [
+    "mode",
+    "artifactsWritten",
+    "couldNotInspect",
+    "humanInputRequested"
+  ],
+  "additionalProperties": false
+}
