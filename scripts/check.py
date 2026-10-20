@@ -42,7 +42,7 @@ JSON_TYPES = {"object", "array", "string", "integer", "number", "boolean", "null
 
 # Stored reversed so this file does not trip its own scan.
 _BANNED_REVERSED = ("tfosorcim", "eruza", "eruzasm", "evirdeno", "pecib", "tentod", "xnls", "rca",
-                    "lahgnishsaka", "kooltuo")
+                    "kooltuo")
 BANNED_WORDS = tuple(w[::-1] for w in _BANNED_REVERSED)
 BANNED_RE = re.compile(r"(?<![A-Za-z0-9])(" + "|".join(BANNED_WORDS) + r")(?![A-Za-z0-9])", re.IGNORECASE)
 

@@ -35,4 +35,8 @@ This project builds on, adapts or credits the following work.
    Shipyard is a generic port of an earlier multi-agent delivery framework for
    a different command-line agent harness. See MIGRATION.md.
 
+6. Inspiration.
+   Akash Singhal (https://github.com/akashsinghal) gave the inspiration for
+   this plugin.
+
 Trademarks belong to their owners. Their mention implies no endorsement.

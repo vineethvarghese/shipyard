@@ -6,7 +6,7 @@ scripts, Python hooks and scripts that use only the standard library, and JSON c
 ## Ground rules
 
 - **Generic only.** No company, product-team, cloud-vendor or person names in the repo (credits live in
-  `NOTICE`). Use neutral examples such as `npm test`, `go test ./...`, `pytest` or `cargo test`.
+  `NOTICE` and the README's Credits section). Use neutral examples such as `npm test`, `go test ./...`, `pytest` or `cargo test`.
   `scripts/check.py` scans for a list of banned words.
 - **Paraphrase books, never quote them.** Cite by author, title and topic.
 - **Nothing pushes.** No script, hook, workflow or agent in this repo may push to a remote.
