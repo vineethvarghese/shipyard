@@ -152,6 +152,8 @@ examples/           a tiny sample project with an illustrative .ai/ folder
 
 ## Credits
 
+Shipyard was inspired by [Akash Singhal](https://github.com/akashsinghal).
+
 Shipyard's brainstorm builds on the elephant/goldfish method
 ([elephant-goldfish](https://github.com/vshvedov/elephant-goldfish), MIT). The simplicity reviewer's voice is
 adapted from the MIT-licensed "Cranky Old Sam" reviewer persona. Ideas from Ousterhout, Gregg and Evans are
