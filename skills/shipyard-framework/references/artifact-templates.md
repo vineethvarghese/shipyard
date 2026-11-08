@@ -10,9 +10,9 @@ Every material fact carries an assumption label: `SPECIFIED`, `DERIVED`, `ASSUME
 
 | File | Writer (enforced by the write-scope hook) |
 |---|---|
-| `state.json`, `PROJECT.md` status/parameters/phase log, `PLAN.HUMAN.md`, `EVIDENCE.md`, `REVIEW.HUMAN.md`, `FINDINGS.json`, `returns/`, ADR-000 | coordinator |
-| `PROJECT.md` body, `CONSUMERS.md`, `planning/discovery.md`, `planning/concepts.md`, `planning/assumptions.md`, `planning/open-questions.md` | discovery |
-| `ARCHITECTURE.md`, `INVARIANTS.md`, `decisions/**`, `planning/architect.md` | architect |
+| `state.json`, `PROJECT.md` status/parameters/phase log, `PLAN.HUMAN.md`, `EVIDENCE.md`, `REVIEW.HUMAN.md`, `FINDINGS.json`, `returns/`, ADR-000 and the short-form grill ADRs | coordinator |
+| `PROJECT.md` body, `GLOSSARY.md`, `CONSUMERS.md`, `planning/discovery.md`, `planning/concepts.md`, `planning/assumptions.md`, `planning/open-questions.md` | discovery |
+| `ARCHITECTURE.md`, `INVARIANTS.md`, `decisions/**`, `formal/**`, `planning/architect.md` | architect |
 | `DELIVERY_PLAN.md`, `slices/*/SLICE.md`, `planning/planner.md` | planner |
 | `slices/<id>/TEST_PLAN.md` (always as `DRAFT`) | verifier |
 | The `Status: DRAFT` → `Status: APPROVED` line of `TEST_PLAN.md`, nothing else | code-reviewer |
@@ -83,9 +83,14 @@ the same content in chat. It summarises; it does not restate.
 
 ## What we will build                  <= 5 lines, outcomes not mechanics; the chosen concept from ADR-000
 ## Slices                              one line each: <id> <title>: <why it comes in this order>
-## Decisions you are approving         <= 5; each: decision / the alternative rejected / why
+## Decisions you are approving         <= 5; each: decision / the alternative rejected / why. Include the seams
+                                       the tests will observe each slice through (from `## Seams under test`):
+                                       approving the plan approves the seams.
+## Properties you are relying on       <= 5 lines, only when C-10 is above none: INV id, one-line meaning, tier
+                                       (invariants | property-tested | model-checked, bounded N steps) and status;
+                                       a VIOLATED model names the ADR that redesigned it. NONE when C-10 is none.
 ## Risks you are accepting             <= 5 ASSUMED facts with material risk-if-wrong, unanswered P0 defaults,
-                                       planner exception requests; NONE if none
+                                       planner exception requests, any model NOT_RUN; NONE if none
 ## Cost so far and expected            one line against C-9
 ## Questions for you now               only ones that change the plan; NONE if none
 ```
@@ -103,6 +108,8 @@ Blocked reason: <one line, only while Status is BLOCKED>
 ## Goals
 ## Non-goals
 ## Success criteria           <measurable>
+## User stories               <numbered; "As <actor>, I want <capability>, so that <benefit>"; drafted by discovery
+                               from the request, confirmed or corrected in the P4 grill; extensive beats short>
 ## Scope
 ## Delivery parameters        <-- answers to the P0 gate, verbatim, each with an ID
 | ID | Parameter | Value | Label |
@@ -116,12 +123,13 @@ Blocked reason: <one line, only while Status is BLOCKED>
 | C-7 | Convention posture | | |
 | C-8 | Feature branch / base branch | feature/x from main | |
 | C-9 | Cost budget | | |
+| C-10 | Formal rigour | none / invariants / properties / model-checked | |
 | BB  | Brainstorm breadth | 0 / 1 / 2 | |
 ## Stakeholders
 ## Constraints
 ## Relevant repositories and services
 ## Known dependencies
-## Key terminology
+## Key terminology            <one line: "See GLOSSARY.md", which is the source of truth for every project term>
 ## Framework configuration    <size-check override; protected branches; notes branch; .ai/ ignored via .git/info/exclude (date);
                                lowered compute minimums or waivers; workflow approval mode>
 ## Phase log
@@ -165,14 +173,52 @@ when the workflow returns writes one phase-log row per phase it ran, each row ca
 
 Properties every current and future slice must preserve. Project-specific — the framework hard-codes none.
 
+The first four lines are the minimum (C-10 `none`). At C-10 `invariants` and above every invariant carries the
+extended block, so a non-specialist can read what it means, what it prevents and how it is checked:
+
 ```markdown
 > 🤖 AGENT FILE. The human is not expected to read this. Human-facing summary: <path to *.HUMAN.md | none>.
-### INV-001: <name>
-Statement:        <the property, testable if possible>
+### INV-001: <name, a sentence a newcomer understands>
+Statement:        <the property, precise and testable; glossary terms only>
 Rationale:        <why it must hold>
 How to verify:    <test, metric, or review check>
 Introduced by:    <slice or ADR>
+Plain English:    <what it means for a user or operator, one or two lines>        (C-10 invariants and above)
+Why it matters:   <the concrete failure it prevents>
+Satisfied by:     <one short sequence of events that keeps it>
+Violated by:      <one short sequence of events that breaks it; "none found" is a finding, not an answer>
+Check:            tier 0: <table or diagram below> · tier 1: <property test or assertion, file :: name>
+                  · tier 2: <.ai/formal/INV-001.qnt, invariant name>                 (only the tiers C-10 selects)
+Status:           <per tier: PLANNED | PASS (slice <id>) | VIOLATED (trace in <file>) | NOT_RUN (<reason>)>
+Tags:             <concurrency | lifecycle | partial-failure | data | security | none>
 ```
+
+For anything stateful add, under the block, a state-by-event table (`State | Event | Next state | Side effect |
+Allowed?`, one row per reachable pair, forbidden pairs included) and a Mermaid `stateDiagram-v2` of the same
+machine. The reliability reviewer reads the table to find missing cells; the verifier copies the "Violated by"
+sequence into a failure case. Properties come from the human's words or an accepted ADR (`SPECIFIED` or
+`DERIVED`); an `ASSUMED` property can never carry `model-checked` status.
+
+## `GLOSSARY.md` (discovery)
+
+The project's language, in the project's words. Seeded in `DRAFT` from the request and the code, sharpened during
+the P4 grill (never batched up: a term settled in a round is written in that round), and read by the architect,
+planner, verifier and code-reviewer. Every later artifact uses these terms; `domain-design` reviews code against
+them.
+
+```markdown
+> 🤖 AGENT FILE. The human is not expected to read this. Human-facing summary: none.
+# Glossary: <project>
+
+### <Term>
+<One or two sentences: what it means in this project, free of implementation detail.>
+Avoid: <other words the code or the request uses for the same thing>
+Source: <the human's words at P4 round <n> | path:line | request>
+```
+
+Only project-specific terms: a word a newcomer could look up in a dictionary does not belong here. Be opinionated:
+one term per concept, the rest under `Avoid`. A term the human and the code use differently is a `term` gap in the
+grill, not a silent choice.
 
 ## `CONSUMERS.md`
 
@@ -279,10 +325,16 @@ Resolution:
 ```markdown
 > 🤖 AGENT FILE. The human is not expected to read this. Human-facing summary: <path to *.HUMAN.md | none>.
 ### Q-001  [BLOCKING_IMPLEMENTATION | DEFERRABLE]   From gap: G<n> | critique finding <id>
+Kind:             concept | scope | term | decision | invariant | fact       Depends on: <Q/G ids | none>
 Question:         Why it matters:
 Evidence so far:  Options:
-Recommendation:   Answer:   <verbatim human answer, date>
+Recommendation:   <worded so that "yes" accepts it>
+Round:            <grill round it was asked in, or SETTLED (from evidence, never asked)>
+Answer:           <verbatim human answer, date>
 ```
+
+`fact` questions are never put to the human: discovery settles them from the repository and records the evidence
+in `Answer:` with `SETTLED`.
 
 The planning gate does not require zero open questions. It requires zero **material** unresolved questions — ones that
 would make implementation unsafe or cause substantial rework.
@@ -302,6 +354,23 @@ Date:   Deciders:
 ```
 
 Use an ADR for any decision future agents must not relitigate.
+
+**Short form, for grill answers.** An answer the human gives at P4 becomes an ADR only when all three hold: it is
+**hard to reverse**, it would be **surprising without context**, and it is the result of a **real trade-off**.
+Otherwise it stays in `open-questions.md`. The short form is enough:
+
+```markdown
+> 🤖 AGENT FILE. The human is not expected to read this. Human-facing summary: PLAN.HUMAN.md.
+# ADR-NNN: <title>
+Status: ACCEPTED   Date: <date>   Deciders: the human (P4 grill, round <n>, gap G<n>)
+
+<One to three sentences: the context, what was decided, and why.>
+Their words: "<the human's answer, verbatim>"
+Forecloses: <what is now off the table; one line>
+```
+
+The coordinator writes it in the round the answer arrives, numbered from ADR-001 upward (ADR-000 stays the scope
+record). The architect's four-section form stays for architecture decisions.
 
 **ADR-000 Scope** is written by the coordinator at P4 from the human's concept pick. Context: the top 3 from
 `concepts.md`. Options considered: each of them, plus "much smaller or nothing" when the contrarian lens raised it.
@@ -337,7 +406,14 @@ feature/x-slice-03
 - tests/cache/**
 ## Affected consumers
 ## Contract changes           NONE if none
-## Architecture constraints   <invariants this slice must preserve>
+## Architecture constraints   <invariants this slice must preserve, each as "INV-nnn (tier: invariants | properties |
+                              model-checked)" from INVARIANTS.md; NONE if none>
+## Seams under test           <the public interface each AC is observed through: a module boundary, an HTTP or RPC
+                              endpoint, a CLI, a message topic. Existing seams first; the highest seam that can
+                              observe the behaviour; ideally one. The verifier plans tests only at these seams;
+                              the human approves them at P8 as part of the plan>
+## Prior art                  <existing tests in the repository that exercise the same seams, as path:: name; NONE
+                              if none. The verifier follows their layout and helpers>
 ## Acceptance criteria
 - [ ] AC-1: <specific and verifiable>
 ## Test expectations          <levels and risks the test plan must cover; the verifier turns this into TEST_PLAN.md>
@@ -384,9 +460,17 @@ Revision: <0 | 1 | 2> of 2    Derived from: SLICE.md acceptance criteria (not fr
 |----|-----------------------------|-------|----------------|
 | AC-1 | tests/cache/ttl.test.ts :: expires after ttl | unit | entry is gone after ttl, present before |
 
+## Seams under test           <copied from SLICE.md; every planned test sits at one of these. A test that needs
+                              another seam is a question for the planner, not a test>
 ## Levels                     <why each AC is tested at the level chosen: unit | integration | e2e | benchmark | tier>
 ## Failure, edge and boundary cases   <one line each, mapped to an AC>
 ## Benchmarks                 <for every performance AC: what is measured, baseline, threshold, command; NONE if none>
+## Invariants exercised
+| INV | Tier | Test (file :: name) | Violating implementation it fails against |
+|-----|------|---------------------|-------------------------------------------|
+| INV-002 | properties | tests/cache/isolation_test.py :: never_returns_another_tenants_entry | a store that returns the first entry regardless of tenant |
+## Test doubles               <each fake and the system boundary it stands in for (external API, clock, randomness,
+                              file system); never an internal collaborator; NONE if none>
 ## ACs not verifiable here    <AC / why / what is checked instead; NONE if none>
 ## Validation tiers           <name / LOCAL | SHARED / ACs / why needed>
 ## Deliberately not tested    <e.g. guaranteed by the type system; NONE if none>
@@ -413,8 +497,9 @@ The human reads top-down and stops early, so the decision comes first and the fi
                                      tiers NOT_RUN, reviewers SKIPPED_BY_HUMAN, material ASSUMED facts; NONE if
                                      none. Never omit unverified criteria.
 ## Evidence                          one line: build PASS, tests PASS (n run), criteria verified n/m,
-                                     reviewers <names>, findings fixed n / rebutted n, rounds n of 3,
-                                     commit <short sha>. Full record: EVIDENCE.md
+                                     invariants n/m exercised (k model-checked, bounded N steps) when C-10 is
+                                     above none, reviewers <names>, findings fixed n / rebutted n,
+                                     rounds n of 3, commit <short sha>. Full record: EVIDENCE.md
 ```
 
 Point the human at architectural and semantic risk. Never ask for line-by-line review of mechanical code; that is
@@ -459,6 +544,7 @@ Static analysis:    PASS | FAIL | NOT_APPLICABLE
 Unit tests:         PASS | FAIL   (run: N, failures: N)
 Integration tests:  PASS | FAIL | NOT_APPLICABLE
 Validation tiers:   <each planned tier: PASS | FAIL | NOT_RUN | AWAITING_APPROVAL + why>
+Formal (C-10):      <tier; INV ids checked; INV ids NOT_RUN with reason; "none" when C-10 is none>
 Command used:       <exact command, duration>
 New tests added:
 Acceptance criteria verified:

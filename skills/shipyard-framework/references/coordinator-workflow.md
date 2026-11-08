@@ -7,7 +7,7 @@ table; this file carries the steps. Read the section for the phase you are about
 |---|---|---|
 | P0 Intake | You | HUMAN |
 | P1 Scan · P2 Brainstorm & narrow · P3 Draft | Workflow `shipyard:discover` | — |
-| P4 Questions | You | HUMAN |
+| P4 Grill | You, with discovery `GRILL` between rounds | HUMAN |
 | P5 Critique · P6 Refine · P7 Delivery planning | Workflow `shipyard:plan` | — |
 | P8 Plan approval | You | HUMAN |
 | P9 Slice | You cut the branch; workflow `shipyard:slice`; you write the evidence and the brief | — |
@@ -85,7 +85,7 @@ Write `state.json` only through the state script; it keeps the file valid agains
 
 ```bash
 python3 "$ROOT/scripts/shipyard_state.py" init --project <name> --feature-branch <feature> --base-branch <base> \
-    --protected <comma-separated names> --breadth <0|1|2>
+    --protected <comma-separated names> --breadth <0|1|2> --formal-rigour <none|invariants|properties|model-checked>
 python3 "$ROOT/scripts/shipyard_state.py" set-status <PROJECT STATUS>
 python3 "$ROOT/scripts/shipyard_state.py" set-slice <id> <slice-branch>      # before a slice launch
 python3 "$ROOT/scripts/shipyard_state.py" set-slice --clear                   # after the merge
@@ -104,10 +104,10 @@ the only way `.ai/` reaches git (`branch-policy.md`).
 
 ### Direct Agent calls (outside workflows)
 
-You call specialists directly only for work no workflow covers: P10 (architect `REVALIDATE`, planner `RECONCILE`),
-a drift conformance check (architect `CONFORMANCE`), an adjudication the human asks for (architect `ADJUDICATE`), a
-replan between gates (planner `REPLAN`), and the slice-level re-check described in P9. Every brief starts with the
-shared header:
+You call specialists directly only for work no workflow covers: the P4 grill rounds (discovery `GRILL`), P10
+(architect `REVALIDATE`, planner `RECONCILE`), a drift conformance check (architect `CONFORMANCE`), an adjudication
+the human asks for (architect `ADJUDICATE`), a replan between gates (planner `REPLAN`), and the slice-level re-check
+described in P9. Every brief starts with the shared header:
 
 ```text
 Caller: shipyard:coordinator
@@ -223,6 +223,7 @@ Ask them as **one batched turn**, each with a recommended default, so the human 
 | C-7 | **Convention posture** — may new tooling/test/build mechanisms be invented, or must everything follow repo convention | Decides whether a tooling gap is a design choice or a mandatory escalation. | "follow existing convention" |
 | C-8 | **Feature branch and base branch** | Every slice branch and merge depends on them; Shipyard never touches the base. | `feature/<slug>` from the default branch |
 | C-9 | **Cost budget** | Sets how much breadth the run can afford; reported at every gate. | "moderate" |
+| C-10 | **Formal rigour** — `none`, `invariants`, `properties` or `model-checked` | Decides what the architect writes for every invariant and what the verifier must prove (`docs/formal-methods.md`). Discovering it later rewrites `INVARIANTS.md` and every test plan. | `none`; recommend `invariants` when the request mentions concurrency, retries, money or multi-tenancy; `model-checked` only for a concurrency or partial-failure core, and only after P1 found the tooling |
 | BB | **Brainstorm breadth** 0 / 1 / 2 | Tied to C-6 and C-9 (`brainstorm-policy.md`). | `1` (`0` if the human brought a finished design) |
 
 Record every answer **verbatim** in `PROJECT.md` → `## Delivery parameters`, each as a `SPECIFIED` constraint with
@@ -253,18 +254,21 @@ about deliverable shape, not about design.
      "contracts":   <contracts>,
      "request":     "<PROJECT.md ## Source material, verbatim>",
      "breadth":     <0|1|2>,
-     "constraints": { "C-1": "<value>", ..., "C-9": "<value>" }
+     "constraints": { "C-1": "<value>", ..., "C-10": "<value>" },
+     "formalRigour": "<C-10: none | invariants | properties | model-checked>"
    }
    ```
 
-   The workflow runs discovery `SCAN` (STANDARD; writes `discovery.md`, validation tiers and — for breadth 1–2 — the
-   sealed elephant take), the goldfish lenses in parallel, discovery `SYNTHESIZE` (DEEP; `concepts.md`, gap list),
-   discovery `DRAFT`, architect `DRAFT` (`ARCHITECTURE.md`, `INVARIANTS.md`) and discovery `QUESTIONS` (DEEP).
+   The workflow runs discovery `SCAN` (STANDARD; `discovery.md`, validation tiers, formal tooling when C-10 is above
+   `none`), discovery `ELEPHANT` (DEEP, breadth 1–2; the sealed take), the goldfish lenses in parallel, discovery
+   `SYNTHESIZE` (DEEP; `concepts.md`, gap tree), discovery `DRAFT` (`PROJECT.md` body and user stories,
+   `GLOSSARY.md` seed, `CONSUMERS.md`), architect `DRAFT` (`ARCHITECTURE.md`, `INVARIANTS.md` at the C-10 tier,
+   `.ai/formal/` when model-checked) and discovery `QUESTIONS` (DEEP; the gap tree and the first grill round).
 3. Handle the result:
 
 | status | You do |
 |---|---|
-| `NEEDS_HUMAN` | Normal end. Go to P4 with its top concepts, disagreements and gaps. |
+| `NEEDS_HUMAN` | Normal end. Go to P4 with its top concepts, disagreements, `questions` (the gap tree) and `frontier` (round 1). |
 | `BLOCKED` | Fail closed: `BLOCKED` with its reason; report. |
 | anything else, or no result | Fail closed. |
 
@@ -276,40 +280,98 @@ about deliverable shape, not about design.
 
 ---
 
-## P4 — Questions (GATE)
+## P4 — Grill (GATE)
 
-Discovery drafted the questions (`planning/open-questions.md`, the gap list in `concepts.md`). **You** adjudicate them
-under `escalation-policy.md` — drop any the repository, a command or an earlier decision can settle — and put the
-survivors to the human in **one batched turn**:
+P4 reaches **shared understanding**, not a single answered turn. Discovery drafted a question tree
+(`planning/open-questions.md`; the gap list in `concepts.md`; the result's `questions`, each with `kind`,
+`dependsOn` and `status`). You run the tree as rounds: each round asks the whole **frontier** (every open question
+whose dependencies are resolved: `ANSWERED`, `SETTLED` from evidence, or `DEFERRED` because the human took the
+default), waits, records, and recomputes. The loop is yours; discovery does the recomputing. Before you call a
+frontier empty, confirm no `OPEN` question remains anywhere in the tree; one that is blocked only by a `DEFERRED`
+default is eligible, not stuck.
+
+### Round 1
+
+Adjudicate the frontier under `escalation-policy.md` — drop any question the repository, a command or an earlier
+decision can settle (`kind: fact` questions never reach the human; if one is still `OPEN`, send it back to discovery)
+— and put the survivors to the human in **one turn**, highest leverage first, at most
+`registry.limits.grillQuestionsPerRound`:
 
 1. **The concept pick** (breadth 1–2): the top 3 from `concepts.md`, one line each (what, why, size, main risk), the
    disagreement with the elephant take that matters most, and your recommendation.
-2. **The gaps that change the plan**: every `BLOCKING` gap, plus any `DEFERRABLE` gap whose default you would not
-   want decided silently.
+2. **The frontier**: numbered `Q1..Qn`, each with its evidence, why it matters, the options, and a recommendation
+   worded so that "yes" accepts it. Tell the human a plain "yes" accepts every recommendation in the round, and that
+   "enough" or "go with your recommendations" ends the grill.
 3. **Spend so far** against C-9, one line.
+
+### Between rounds
+
+When the human answers:
+
+1. Round 1 only: write `.ai/decisions/ADR-000-scope.md` from the concept pick (`brainstorm-policy.md`).
+2. Record each answer **verbatim** in `planning/open-questions.md` with the round number; mark the question
+   `ANSWERED`. A question the human skipped takes its recommended default, marked `DEFERRED` and `ASSUMED`, and is
+   listed at P8.
+3. Direct call: `shipyard:discovery`, `Mode: GRILL`, `Budget: 15 turns`, `Read:` `planning/open-questions.md`,
+   `planning/concepts.md`, `.ai/GLOSSARY.md`, `PROJECT.md`, `planning/discovery.md`; `Write:`
+   `planning/open-questions.md`, `.ai/GLOSSARY.md`. Pass the round number and the answers verbatim. Discovery
+   records them, settles every new `fact` from the repository, challenges any term the human used that conflicts
+   with the glossary or the code (a `term` question for the next round), adds the questions the answers opened
+   (each with `kind` and `dependsOn`), writes the glossary, and returns the next `frontier`, `glossaryTerms` and
+   `decisionCandidates`. Validate against `discovery-result`.
+4. For each `decisionCandidates` entry with all three flags true (hard to reverse, surprising without context, a real
+   trade-off), write a short-form `.ai/decisions/ADR-NNN.md` (`artifact-templates.md`) in this round. Everything
+   else stays in `open-questions.md`.
+5. Phase-log row `P4 round <n>`; checkpoint.
+6. If the frontier is non-empty and no stop condition holds, ask the next round (step 2 of round 1 again, without the
+   concept pick).
+
+### Stop conditions
+
+The grill ends when any of these holds:
+
+- the frontier is empty (every branch of the tree visited, nothing left silently assumed);
+- the human says "enough", "go with your recommendations" or words to that effect: every open question takes its
+  recommended default, marked `DEFERRED` and `ASSUMED`;
+- `registry.limits.grillRounds` rounds have been asked. Say so; the human may ask for more rounds, which you grant.
+
+Then show the **shared-understanding checklist** in chat (≤ 15 lines) and wait for an explicit yes:
+
+```text
+Concept:        <ADR-000, one line>
+Terms settled:  <glossary terms added or sharpened, comma-separated | none>
+Decisions:      <ADR ids written this grill, one line each | none>
+Defaults taken: <questions left at their recommended default, one line each | none>
+Deferred:       <questions that will be answered by readiness checks at P7 or at P8 | none>
+Formal rigour:  <C-10 tier and the invariants the human named | none>
+Say "yes" to start planning, or name anything above that is wrong.
+```
+
+Silence or enthusiasm is not a yes (hard rule 6). A correction reopens that question; discovery `GRILL` recomputes
+and the checklist is shown again.
+
+### Leaving P4
+
+1. Compute `planFlags` (`review-routing.md` → plan routing): `publicContract`, `config`, `consumerVisible`,
+   `concurrency`, `security`, each `true` or `false` from `discovery.md`, ADR-000 and the answers (uncertain →
+   `true`); `modelChecked` is `true` exactly when C-10 is `model-checked`.
+2. Phase-log row for P4 (rounds asked, questions answered, defaults taken, ADRs written); checkpoint. Move to P5.
 
 Rules:
 
-- Ask the **highest-leverage questions first** — the ones whose answers make others moot.
-- **Batch.** Never trickle out one question at a time.
+- **Ask the whole frontier per round**, highest leverage first; never one question per turn, and never a question
+  whose dependency is still open.
 - Every question **cites evidence** from the repository and says why it matters.
-- **Give options** where clear options exist, and **recommend one** when evidence supports it.
-- **Never ask what the repository can answer.** Go read it.
+- **Recommend, and word it so "yes" accepts it.** "Here are three options, you pick" wastes the leverage.
+- **Never ask what the repository can answer.** Go read it; a `fact` question is a discovery defect.
+- **No total cap on questions.** The caps are per round and on rounds; the human can always extend. Hundreds of
+  questions is a sign of a badly cut tree, not of a thorough grill.
 
 Bad: *"How should errors work?"*
 
 Good: *"`src/client/retry.go:88` retries HTTP 502 and 503. The proposed design adds a failure after partial response
 commitment, which that loop would treat as retryable and so duplicate side effects. Keep the retry contract, or make
 partial-stream failure terminal? Recommend terminal."*
-
-When the human answers:
-
-1. Write `.ai/decisions/ADR-000-scope.md` from the concept pick (`brainstorm-policy.md`).
-2. Record each answer verbatim in `planning/open-questions.md`; close answered questions; note `DEFERRABLE` gaps
-   left at their recommended default as `ASSUMED`.
-3. Compute `planFlags` (`review-routing.md` → plan routing): `publicContract`, `config`, `consumerVisible`,
-   `concurrency`, `security`, each `true` or `false` from `discovery.md`, ADR-000 and the answers. Uncertain → `true`.
-4. Phase-log row for P4. Move to P5.
 
 ---
 
@@ -324,18 +386,20 @@ When the human answers:
      "registry":  <registry>,
      "contracts": <contracts>,
      "planFlags": { "publicContract": bool, "config": bool, "consumerVisible": bool,
-                    "concurrency": bool, "security": bool },
+                    "concurrency": bool, "security": bool, "modelChecked": bool },
      "cycle":     <refine cycles already used: 0 on the first launch>,
      "answers":   { "concept": "<the human's pick, verbatim>", "gaps": { "G1": "<answer>", ... },
-                    "questions": { "Q-003": "<answer>", ... } }
+                    "questions": { "Q-003": "<answer>", ... }, "defaults": { "G4": "<default taken>" } },
+     "formalRigour": "<C-10>"
    }
    ```
 
    The workflow runs the P5 critique (architect `CRITIQUE` and simplicity always; contract, integration, reliability
-   and security by `planFlags`, each in `PLAN` mode, writing `.ai/planning/<agent-name>.md`), P6 refinement (bounded
-   rechecks, at most `registry.limits.planRefineCycles` cycles counted from `cycle`), and P7 delivery planning
-   (planner `PLAN` with the C-constraints; integration and architect sequencing checks; one readiness goldfish per
-   `SLICE.md`).
+   and security by `planFlags`, each in `PLAN` mode, writing `.ai/planning/<agent-name>.md`; at C-10 `model-checked`
+   the reliability reviewer runs every model under `.ai/formal/` with `scripts/formal_check.py`), P6 refinement
+   (bounded rechecks, at most `registry.limits.planRefineCycles` cycles counted from `cycle`), and P7 delivery
+   planning (planner `PLAN` with the C-constraints, seams under test and prior art per slice; integration and
+   architect sequencing checks; one readiness goldfish per `SLICE.md`).
 3. Handle the result:
 
 | status | You do |
@@ -389,8 +453,10 @@ inventing a scheme.
 
 1. `set-status AWAITING_PLAN_APPROVAL`.
 2. Write `.ai/PLAN.HUMAN.md` from the template (`artifact-templates.md`): recommendation, what will be built (from
-   ADR-000), the slices in order, the decisions being approved, the risks being accepted (including every `ASSUMED`
-   P0 default and every planner exception request), spend against C-9, and only the questions that change the plan.
+   ADR-000), the slices in order, the decisions being approved (including each slice's seams under test), the
+   properties being relied on (C-10 above `none`: INV id, meaning, tier, status, any model NOT_RUN), the risks being
+   accepted (including every `ASSUMED` P0 default, every grill question left at its default, and every planner
+   exception request), spend against C-9, and only the questions that change the plan.
 3. **Present the same content in chat.** The human approves what you tell them, not what they might find in agent
    files. Anything material that does not fit on one screen is either cut or is a question now.
 4. **Wait for explicit approval.** Silence or general enthusiasm is not approval. A change request goes to the
@@ -487,8 +553,9 @@ From the validated result, never from memory:
 1. `.ai/slices/<id>/FINDINGS.json` — the result's `findings` array, verbatim.
 2. `.ai/slices/<id>/EVIDENCE.md` — the full record (template in `artifact-templates.md`): `Evidence commit:` = the
    result's `commit`; the test plan line from `testPlan`; the review table from `reviewersRouted`,
-   `reviewersNotRouted` and the counts; verification from `verify`; capability skill versions from
-   `abilityVersions`; rounds; and the machine block = the result verbatim. Reviewers not routed are listed with why,
+   `reviewersNotRouted` and the counts; verification from `verify` (the `Formal (C-10):` line from `verify.formal`:
+   tier, invariants checked, invariants `NOT_RUN` with reasons); capability skill versions from `abilityVersions`;
+   rounds; and the machine block = the result verbatim. Reviewers not routed are listed with why,
    so silence is never ambiguous.
 3. `.ai/slices/<id>/REVIEW.HUMAN.md` — **≤ 40 lines**: recommendation first, at most three things to check (each a
    file or decision and the question to ask about it), what changes, risks (never omit unverified ACs, `NOT_RUN`
@@ -602,7 +669,7 @@ Never reconstruct state from conversation history. Re-read the files.
 |---|---|
 | `INTAKE`, P0 answers incomplete | Re-ask only the missing P0 items, in one turn. |
 | `DISCOVERY` with no P1–P3 rows | Re-launch `shipyard:discover`. In the same session (or after `claude --resume`), ask for the stopped run to be relaunched: completed agents return their saved results. |
-| `PLANNING` with P4 open | Re-present the P4 questions not yet answered. |
+| `PLANNING` with P4 open | Read `planning/open-questions.md`: the last `P4 round <n>` phase-log row says which round was asked. Re-present that round's unanswered questions; if the round was fully answered, run discovery `GRILL` for the next frontier. Never restart from round 1. |
 | `PLANNING` after P4 | Re-launch `shipyard:plan` with the same `cycle`. |
 | `AWAITING_PLAN_APPROVAL` | Re-present `PLAN.HUMAN.md` in chat. |
 | `IMPLEMENTING`, slice `TEST_PLANNING`…`AGENT_REVIEW` | Check out the slice branch; re-launch `shipyard:slice` for it (relaunch the stopped run if the session still has it; else `startAt: "VERIFY"` when `TEST_PLAN.md` says `APPROVED` and the slice has code commits, otherwise a fresh launch with `round: 0`). |

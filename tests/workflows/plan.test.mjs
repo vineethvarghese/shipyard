@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runWorkflow, reviewer, architect, planner, goldfish, finding, sliceDefaults } from './harness.mjs';
 
-const NO_FLAGS = { publicContract: false, consumerVisible: false, concurrency: false, security: false, config: false };
+const NO_FLAGS = { publicContract: false, consumerVisible: false, concurrency: false, security: false, config: false, modelChecked: false };
 
 function defaults() {
   return Object.assign(sliceDefaults(), {
@@ -30,6 +30,10 @@ test('happy path → AWAITING_PLAN_APPROVAL with slices 01..NN', async () => {
   assert.deepEqual(critique(run), ['architect|CRITIQUE', 'simplicity-reviewer|PLAN']);
   const plan = run.calls.find((c) => c.key === 'planner|PLAN');
   assert.match(plan.prompt, /two-digit sequential slice ids 01\.\.NN/);
+  assert.match(plan.prompt, /## Seams under test/);
+  assert.match(plan.prompt, /## Prior art/);
+  assert.match(plan.prompt, /Formal rigour \(C-10\): none/);
+  assert.match(plan.prompt, /^Read: .*\.ai\/GLOSSARY\.md/m);
   const ready = run.calls.filter((c) => c.key === 'goldfish|READINESS');
   assert.deepEqual(ready.map((c) => /^Read: (.*)$/m.exec(c.prompt)[1]), ['.ai/slices/01/SLICE.md', '.ai/slices/02/SLICE.md']);
   const integ = run.calls.find((c) => c.key === 'integration-reviewer|PLAN' && c.phase === 'Delivery plan');
@@ -49,6 +53,19 @@ test('plan routes security when planFlags.security', async () => {
   assert.deepEqual(critique(run), ['architect|CRITIQUE', 'security-reviewer|PLAN', 'simplicity-reviewer|PLAN']);
   assert.ok(run.result.reviewersRouted.some((r) => r.role === 'security-review' && /security=true/.test(r.because)));
   assert.ok(run.result.reviewersNotRouted.some((r) => r.role === 'contract-review'));
+});
+
+test('modelChecked routes the reliability reviewer and tells it to run the models', async () => {
+  const run = await runPlan({ planFlags: { ...NO_FLAGS, modelChecked: true }, formalRigour: 'model-checked' });
+  assert.deepEqual(critique(run), ['architect|CRITIQUE', 'reliability-reviewer|PLAN', 'simplicity-reviewer|PLAN']);
+  assert.ok(run.result.reviewersRouted.some((r) => r.role === 'reliability-review' && /modelChecked=true/.test(r.because)));
+  const rel = run.calls.find((c) => c.key === 'reliability-reviewer|PLAN');
+  assert.match(rel.prompt, /formal_check\.py/);
+  assert.match(rel.prompt, /planted fault must fail/);
+  const simp = run.calls.find((c) => c.key === 'simplicity-reviewer|PLAN');
+  assert.match(simp.prompt, /Formal rigour \(C-10\): model-checked/);
+  assert.doesNotMatch(simp.prompt, /formal_check\.py/);
+  await assert.rejects(runWorkflow('plan', { planFlags: NO_FLAGS, formalRigour: 'proofs' }, {}, {}), /formalRigour must be one of/);
 });
 
 test('absent or uncertain plan flags → route', async () => {

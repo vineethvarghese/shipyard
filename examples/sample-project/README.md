@@ -51,7 +51,7 @@ plan is not approved — Shipyard writes no code before that.
 | File | What it shows |
 |---|---|
 | [`.ai/state.json`](.ai/state.json) | Machine state: status `IMPLEMENTING`, active slice `02`, its branch |
-| [`.ai/PROJECT.md`](.ai/PROJECT.md) | Problem, goals, delivery parameters C-1..C-9, phase log |
+| [`.ai/PROJECT.md`](.ai/PROJECT.md) | Problem, goals, delivery parameters C-1..C-10, phase log |
 | [`.ai/PLAN.HUMAN.md`](.ai/PLAN.HUMAN.md) | The one-screen plan-approval brief (stop 3) |
 | [`.ai/DELIVERY_PLAN.md`](.ai/DELIVERY_PLAN.md) | Slices, states, branches, reconciliation log |
 | [`.ai/planning/concepts.md`](.ai/planning/concepts.md) | Sealed elephant take, three goldfish lenses, top 3, disagreements, gap list |

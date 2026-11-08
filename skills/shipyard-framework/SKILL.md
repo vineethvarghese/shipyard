@@ -12,7 +12,7 @@ description: >
 
 # Shipyard framework — shared contract
 
-Version 1.0.0. This skill is the **single source of truth** for how Shipyard agents plan, test, build, review
+Version 1.1.0. This skill is the **single source of truth** for how Shipyard agents plan, test, build, review
 and merge. Agent files stay short and point here; capability skills hold each role's expertise.
 
 ## ⛔ Hard rules (always enforced)
@@ -38,8 +38,9 @@ Breaking one of these is a critical failure. Rules 12–14 are also enforced by 
    dependencies can be settled by a command under 60 seconds, run it. A slower command is allowed when it is
    the narrowest one that settles the question; record its duration. An unverified prediction is
    `UNRESOLVED`, never `DERIVED`. See `references/verification-policy.md`.
-6. **Never bypass a human gate.** P0 parameters, P4 questions, P8 plan approval and every slice merge are
-   human decisions. Agents recommend; they never self-approve or assume approval.
+6. **Never bypass a human gate.** P0 parameters, the P4 grill (the concept pick, every round of questions and
+   the shared-understanding checklist), P8 plan approval and every slice merge are human decisions. Agents
+   recommend; they never self-approve or assume approval.
 7. **Agent approval is not merge approval.** `MERGED` is the only terminal slice state.
 8. **Respect the source-of-truth order** below.
 9. **Only the coordinator talks to the human.** A specialist that needs input returns a
@@ -128,7 +129,7 @@ Order, caps, routing and dedupe are code, not judgment: three saved workflows (`
 | Role | Agent | Owns |
 |---|---|---|
 | coordinator | `shipyard:coordinator` | Workflow, gates, state, branches, merges, evidence, escalation. The only entry point. |
-| discovery | `shipyard:discovery` | Repository facts, brainstorm synthesis, gap list, drafted questions and artifacts. |
+| discovery | `shipyard:discovery` | Repository facts, the sealed elephant take, brainstorm synthesis, the gap tree, the P4 grill rounds, the glossary, drafted artifacts. |
 | goldfish | `shipyard:goldfish` | Fresh, context-free ideas from one lens; cold readiness checks of slice specs. |
 | architect | `shipyard:architect` | Architecture, invariants, design critique, abstraction challenge, disputes, revalidation. |
 | planner | `shipyard:planner` | Vertical slices, migration order, touch sets, replanning. |
@@ -157,6 +158,7 @@ Order, caps, routing and dedupe are code, not judgment: three saved workflows (`
 | `references/escalation-policy.md` | Needing human input; deciding what reaches the human. |
 | `references/merge-reconciliation.md` | After a slice merges into the feature branch. |
 | `references/artifact-templates.md` | Creating or updating anything under `.ai/`. |
+| `references/formal-methods.md` | C-10 is above `none`: what each tier asks of the architect, the reliability reviewer, the verifier and the coordinator. |
 
 ## Artifact budget
 
@@ -170,13 +172,15 @@ through a cap says so and why.
 .ai/
 ├── state.json              🤖 machine state for hooks and resume (coordinator only)
 ├── PLAN.HUMAN.md           👤 plan-approval brief (P8), one screen
-├── PROJECT.md              🤖 problem, goals, scope, delivery parameters C-1..C-9, status, phase log
+├── PROJECT.md              🤖 problem, goals, user stories, scope, delivery parameters C-1..C-10, status, phase log
+├── GLOSSARY.md             🤖 the project's terms, sharpened in the P4 grill (discovery only)
 ├── ARCHITECTURE.md         🤖 current and target state (architect only)
-├── INVARIANTS.md           🤖 properties every slice preserves (architect only)
+├── INVARIANTS.md           🤖 properties every slice preserves, extended blocks at C-10 ≥ invariants (architect only)
+├── formal/INV-nnn.qnt      🤖 model-checked specs and their traces, C-10 model-checked only (architect only)
 ├── CONSUMERS.md            🤖 who depends on this and how they migrate
 ├── DELIVERY_PLAN.md        🤖 slices, states, branches, gates, reconciliation log
 ├── planning/               🤖 discovery.md, concepts.md, assumptions.md, open-questions.md, <reviewer>.md
-├── decisions/ADR-NNN.md    🤖 decisions that must not be relitigated
+├── decisions/ADR-NNN.md    🤖 decisions that must not be relitigated (short form for grill answers)
 └── slices/<id>/
     ├── SLICE.md            🤖 objective, ACs, code and test touch sets, branch, routing
     ├── TEST_PLAN.md        🤖 Status line + AC → test map (gated by code-review)

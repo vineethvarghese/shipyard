@@ -93,7 +93,7 @@ flowchart TD
 |---|---|---|
 | You | The coordinator | Chat |
 | Coordinator | The three saved workflows | Workflow tool: `shipyard:discover`, `shipyard:plan`, `shipyard:slice` |
-| Coordinator | The twelve specialists, directly | Agent tool, limited by an allowlist. Used for work no workflow covers: P10 reconcile, conformance checks, adjudication |
+| Coordinator | The twelve specialists, directly | Agent tool, limited by an allowlist. Used for work no workflow covers: the grill rounds at P4, P10 reconcile, conformance checks, adjudication |
 | Saved workflows | Specialists | `agent()` calls inside the script |
 | Specialists | No one | They have no Agent tool |
 
@@ -111,7 +111,7 @@ One page per agent is generated in [agents/](agents/).
 
 | Workflow | Phases | Returns |
 |---|---|---|
-| `/shipyard:discover` | P1 Scan, P2 Brainstorm and narrow, P3 Draft | Repo facts, top concepts, disagreements, gap list |
+| `/shipyard:discover` | P1 Scan, P2 Brainstorm and narrow, P3 Draft | Repo facts, top concepts, disagreements, the gap tree and round 1 of the grill |
 | `/shipyard:plan` | P5 Critique, P6 Refine, P7 Delivery planning | Critiqued plan, slices with touch sets, readiness results, or new questions for you |
 | `/shipyard:slice` | P9 for one slice | `READY_FOR_HUMAN`, `ESCALATE`, `NEEDS_SHARED_APPROVAL`, `BLOCKED_REVIEWER` or `BLOCKED`, plus evidence and findings |
 

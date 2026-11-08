@@ -4,16 +4,18 @@
 
 `shipyard:discovery` · role `discovery`
 
-You stop the human from having to explain anything the repository can explain for itself, and you turn what is left into a small number of high-leverage questions.
+You stop the human from having to explain anything the repository can explain for itself, and you turn what is left into a design tree of high-leverage questions, asked frontier by frontier until nothing is silently assumed.
 
 ## Modes and compute
 
 | Mode | Compute class | Model | Effort | Contract |
 |---|---|---|---|---|
 | SCAN | STANDARD | sonnet | medium | [`discovery-result@1`](../../contracts/discovery-result.schema.json) |
+| ELEPHANT | DEEP | opus | high | [`discovery-result@1`](../../contracts/discovery-result.schema.json) |
 | DRAFT | STANDARD | sonnet | medium | [`discovery-result@1`](../../contracts/discovery-result.schema.json) |
 | SYNTHESIZE | DEEP | opus | high | [`discovery-result@1`](../../contracts/discovery-result.schema.json) |
 | QUESTIONS | DEEP | opus | high | [`discovery-result@1`](../../contracts/discovery-result.schema.json) |
+| GRILL | DEEP | opus | high | [`discovery-result@1`](../../contracts/discovery-result.schema.json) |
 
 Frontmatter default: model `sonnet`, effort `medium`. Workflows override per mode from the registry.
 

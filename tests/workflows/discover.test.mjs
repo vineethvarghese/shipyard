@@ -8,6 +8,7 @@ const CONSTRAINTS = 'C-1 slice budget: ~400 lines. C-3 reuse posture: reuse firs
 function defaults() {
   return {
     'discovery|SCAN': discovery('SCAN', { artifactsWritten: ['.ai/planning/discovery.md'] }),
+    'discovery|ELEPHANT': discovery('ELEPHANT', { artifactsWritten: ['.ai/planning/concepts.md'] }),
     'discovery|SYNTHESIZE': discovery('SYNTHESIZE', {
       artifactsWritten: ['.ai/planning/concepts.md'],
       topConcepts: [{ title: 'Read-through cache', summary: 'cache in the client', lensesThatProposedIt: ['technical'] }],
@@ -18,7 +19,11 @@ function defaults() {
     'architect|DRAFT': architect({ mode: 'DRAFT', verdict: 'SOUND' }),
     'discovery|QUESTIONS': discovery('QUESTIONS', {
       artifactsWritten: ['.ai/planning/open-questions.md'],
-      gaps: [{ id: 'G1', question: 'TTL?', whyItMatters: 'staleness', evidence: 'pricing.js:40', options: ['60s', '5m'], recommendation: '60s', blocking: true }],
+      gaps: [
+        { id: 'G1', question: 'TTL?', whyItMatters: 'staleness', evidence: 'pricing.js:40', options: ['60s', '5m'], recommendation: '60s', blocking: true, kind: 'decision', dependsOn: [], status: 'OPEN' },
+        { id: 'G2', question: 'Evict on write?', whyItMatters: 'consistency', evidence: 'pricing.js:52', options: ['yes', 'no'], recommendation: 'yes', blocking: false, kind: 'decision', dependsOn: ['G1'], status: 'OPEN' },
+        { id: 'G3', question: 'Which store?', whyItMatters: 'none', evidence: 'package.json', options: [], recommendation: 'in-memory, the only store present', blocking: false, kind: 'fact', dependsOn: [], status: 'SETTLED' },
+      ],
       highestLeverageQuestion: 'TTL?',
     }),
     'goldfish|BRAINSTORM': (prompt) => {
@@ -52,8 +57,11 @@ test('breadth 1 → 3 goldfish whose briefs contain only the request and the len
     assert.match(c.prompt, /^Caller: shipyard:coordinator\nMode: BRAINSTORM\n/);
   }
   const scan = run.calls.find((c) => c.key === 'discovery|SCAN');
-  assert.match(scan.prompt, /sealed elephant take/i);
-  assert.match(scan.prompt, /\.ai\/planning\/concepts\.md/);
+  assert.doesNotMatch(scan.prompt, /write your sealed elephant take/i);
+  const elephant = run.calls.find((c) => c.key === 'discovery|ELEPHANT');
+  assert.match(elephant.prompt, /sealed elephant take/i);
+  assert.match(elephant.prompt, /\.ai\/planning\/concepts\.md/);
+  assert.ok(elephant.index > scan.index && elephant.index < Math.min(...fish.map((f) => f.index)), 'the take is sealed before any goldfish runs');
   const synth = run.calls.find((c) => c.key === 'discovery|SYNTHESIZE');
   assert.match(synth.prompt, /"lens": "contrarian"/);
   assert.ok(synth.index > Math.max(...fish.map((f) => f.index)));
@@ -61,7 +69,76 @@ test('breadth 1 → 3 goldfish whose briefs contain only the request and the len
   assert.equal(run.result.gaps[0].id, 'G1');
   assert.ok(run.result.questions.length >= 1);
   assert.ok(run.result.artifacts.includes('.ai/planning/concepts.md'));
-  assert.deepEqual(keys(run).filter((k) => !k.startsWith('goldfish')), ['discovery|SCAN', 'discovery|SYNTHESIZE', 'discovery|DRAFT', 'architect|DRAFT', 'discovery|QUESTIONS']);
+  assert.deepEqual(keys(run).filter((k) => !k.startsWith('goldfish')), ['discovery|SCAN', 'discovery|ELEPHANT', 'discovery|SYNTHESIZE', 'discovery|DRAFT', 'architect|DRAFT', 'discovery|QUESTIONS']);
+  const draft = run.calls.find((c) => c.key === 'discovery|DRAFT');
+  assert.match(draft.prompt, /GLOSSARY\.md/);
+  assert.match(draft.prompt, /User stories/);
+  const q = run.calls.find((c) => c.key === 'discovery|QUESTIONS');
+  assert.match(q.prompt, /question tree/);
+  assert.match(q.prompt, /dependsOn/);
+});
+
+test('the first grill round is the open questions with no unanswered dependency; facts are never asked', async () => {
+  const run = await runDiscover({ breadth: 1 });
+  assert.deepEqual(run.result.questions.map((q) => q.id), ['G1', 'G2', 'G3']);
+  assert.deepEqual(run.result.frontier, ['G1']);
+  const g2 = run.result.questions.find((q) => q.id === 'G2');
+  assert.deepEqual(g2.dependsOn, ['G1']);
+  assert.equal(run.result.questions.find((q) => q.id === 'G3').status, 'SETTLED');
+  assert.equal(run.result.formalRigour, 'none');
+  assert.match(run.result.reason, /round 1/);
+});
+
+test('discovery QUESTIONS may order the frontier, but ineligible ids are dropped and eligible extras are merged in', async () => {
+  const hir = { question: 'Keep the old API?', evidence: 'CONSUMERS.md', recommendation: 'yes', blocked: 'order' };
+  const run = await runDiscover({ breadth: 0 }, {
+    'architect|DRAFT': [architect({ mode: 'DRAFT', verdict: 'SOUND', humanInputRequested: hir })],
+    'discovery|QUESTIONS': [discovery('QUESTIONS', {
+      artifactsWritten: ['.ai/planning/open-questions.md'],
+      gaps: [
+        { id: 'G1', question: 'A?', whyItMatters: 'w', evidence: 'e', options: [], recommendation: 'r', blocking: true },
+        { id: 'G2', question: 'B?', whyItMatters: 'w', evidence: 'e', options: [], recommendation: 'r', blocking: false, kind: 'decision', dependsOn: ['G1'], status: 'OPEN' },
+      ],
+      frontier: ['G2', 'G1'], highestLeverageQuestion: 'Why at all?',
+    })],
+  });
+  // G2 depends on the still-open G1 so it is not eligible even though discovery listed it; the highest-leverage
+  // question (HL) and the architect's human input request (HIR) are eligible and must not be skipped
+  assert.deepEqual(run.result.frontier, ['G1', 'HL', 'HIR-architect']);
+  // legacy gaps without kind/dependsOn/status are normalised
+  const g1 = run.result.questions.find((q) => q.id === 'G1');
+  assert.deepEqual([g1.kind, g1.dependsOn, g1.status], ['decision', [], 'OPEN']);
+  const hl = run.result.questions.find((q) => q.id === 'HL');
+  assert.deepEqual([hl.kind, hl.dependsOn, hl.status], ['decision', [], 'OPEN']);
+});
+
+test('a DEFERRED dependency (default taken) unblocks the questions that hang off it', async () => {
+  const run = await runDiscover({ breadth: 0 }, {
+    'discovery|QUESTIONS': [discovery('QUESTIONS', {
+      artifactsWritten: ['.ai/planning/open-questions.md'],
+      gaps: [
+        { id: 'G1', question: 'A?', whyItMatters: 'w', evidence: 'e', options: ['x'], recommendation: 'x', blocking: false, kind: 'decision', dependsOn: [], status: 'DEFERRED' },
+        { id: 'G2', question: 'B?', whyItMatters: 'w', evidence: 'e', options: [], recommendation: 'r', blocking: true, kind: 'decision', dependsOn: ['G1'], status: 'OPEN' },
+      ],
+      highestLeverageQuestion: 'B?',
+    })],
+  });
+  assert.deepEqual(run.result.frontier, ['G2']);
+});
+
+test('formal rigour flows into the scan and the architect draft; an invalid value fails loudly', async () => {
+  const run = await runDiscover({ breadth: 0, formalRigour: 'model-checked' });
+  assert.match(run.calls.find((c) => c.key === 'discovery|SCAN').prompt, /quint/);
+  const arch = run.calls.find((c) => c.key === 'architect|DRAFT');
+  assert.match(arch.prompt, /Formal rigour \(C-10\): model-checked/);
+  assert.match(arch.prompt, /\.ai\/formal\/INV-nnn\.qnt/);
+  assert.match(arch.prompt, /planted fault/);
+  assert.match(arch.prompt, /^Write: .*\.ai\/formal\/\*\.qnt/m);
+  assert.equal(run.result.formalRigour, 'model-checked');
+  const none = await runDiscover({ breadth: 0 });
+  assert.doesNotMatch(none.calls.find((c) => c.key === 'discovery|SCAN').prompt, /quint/);
+  assert.doesNotMatch(none.calls.find((c) => c.key === 'architect|DRAFT').prompt, /planted fault/);
+  await assert.rejects(runWorkflow('discover', { request: 'x', breadth: 0, formalRigour: 'proofs' }, {}, {}), /formalRigour must be one of/);
 });
 
 function keys(run) {
@@ -74,8 +151,7 @@ test('breadth 0 skips goldfish and synthesis', async () => {
   assert.equal(run.calls.filter((c) => c.key.startsWith('goldfish')).length, 0);
   assert.deepEqual(keys(run), ['discovery|SCAN', 'discovery|DRAFT', 'architect|DRAFT', 'discovery|QUESTIONS']);
   assert.ok(!run.phases.includes('Brainstorm'));
-  const scan = run.calls.find((c) => c.key === 'discovery|SCAN');
-  assert.doesNotMatch(scan.prompt, /sealed elephant take into/i);
+  assert.equal(run.calls.filter((c) => c.key === 'discovery|ELEPHANT').length, 0);
 });
 
 test('breadth 2 → five lenses then one outsider told only the cluster titles', async () => {
@@ -107,13 +183,22 @@ test('a goldfish null after retry → BLOCKED', async () => {
   assert.match(run2.result.reason, /goldfish/);
 });
 
-test('discovery runs STANDARD for SCAN and DEEP for SYNTHESIZE', async () => {
+test('discovery runs STANDARD for SCAN and DEEP for ELEPHANT and SYNTHESIZE', async () => {
   const run = await runDiscover({ breadth: 1 });
   const scan = run.calls.find((c) => c.key === 'discovery|SCAN');
+  const elephant = run.calls.find((c) => c.key === 'discovery|ELEPHANT');
   const synth = run.calls.find((c) => c.key === 'discovery|SYNTHESIZE');
   assert.deepEqual([scan.opts.model, scan.opts.effort], ['sonnet', 'medium']);
+  assert.deepEqual([elephant.opts.model, elephant.opts.effort], ['opus', 'high']);
   assert.deepEqual([synth.opts.model, synth.opts.effort], ['opus', 'high']);
   assert.equal(scan.opts.agentType, 'shipyard:discovery');
+});
+
+test('the elephant null after retry → BLOCKED before any goldfish runs', async () => {
+  const run = await runDiscover({ breadth: 1 }, { 'discovery|ELEPHANT': [null, null] });
+  assert.equal(run.result.status, 'BLOCKED');
+  assert.match(run.result.reason, /ELEPHANT/);
+  assert.equal(run.calls.filter((c) => c.key === 'goldfish|BRAINSTORM').length, 0);
 });
 
 test('breadth defaults to 1 when absent; an invalid breadth fails loudly', async () => {

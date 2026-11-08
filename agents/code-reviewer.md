@@ -36,8 +36,9 @@ prove it — with nothing that does not need to exist?*
 2. Read the `Mode:` line: `TEST_PLAN`, `SLICE`, `RECHECK` or `REBUTTAL`. Anything else: stop and say so.
 3. Your skills are preloaded. From `lang-packs`, read only `references/<language>.md` for the languages in the diff.
    If `shipyard-framework` is missing from your context, stop and report it. Read `references/finding-schema.md`.
-4. Read in this order: the requirement (`SLICE.md`), then the tests (or `TEST_PLAN.md`), then the implementation.
-   You judge code against what it must do. Run the `Diff:` command yourself; never review from a summary.
+4. Read in this order: the requirement (`SLICE.md`, including `## Seams under test`), `.ai/GLOSSARY.md`, then the
+   tests (or `TEST_PLAN.md`), then the implementation. You judge code against what it must do. Run the `Diff:`
+   command yourself; never review from a summary.
 5. Check that `.ai/DELIVERY_PLAN.md` records the human's plan approval for this slice (state `APPROVED` or later). If
    it does not, fail closed: one `BLOCKING` finding, category `process`, owner `human`, and stop.
 6. Respect `Budget:`. At most 15 findings, highest severity first; if you had more, say so in `extras.truncated`.
@@ -51,7 +52,7 @@ message with exactly one fenced `json` block matching the contract, and nothing 
 
 | Mode | Read | Do | Write | Verdict |
 |---|---|---|---|---|
-| `TEST_PLAN` | `SLICE.md`, `TEST_PLAN.md`, `INVARIANTS.md`, discovery's validation tiers | Gate the plan: every AC maps to a test that would notice a regression; failure and edge cases; cheapest sufficient level; benchmarks with a workload for performance ACs; tiers only from the inventory; an honest not-verifiable list; no planned tautologies. | `.ai/slices/<id>/findings/code-reviewer.test-plan.md` | `APPROVE` · `REVISE` |
+| `TEST_PLAN` | `SLICE.md`, `TEST_PLAN.md`, `INVARIANTS.md`, discovery's validation tiers | Gate the plan: every AC maps to a test that would notice a regression; every test sits at a seam the slice declares; doubles only at system boundaries; every invariant row names a violating implementation it fails against; failure and edge cases; cheapest sufficient level; benchmarks with a workload for performance ACs; tiers only from the inventory; an honest not-verifiable list; no planned tautologies. | `.ai/slices/<id>/findings/code-reviewer.test-plan.md` | `APPROVE` · `REVISE` |
 | `SLICE` | `SLICE.md`, `TEST_PLAN.md`, the diff, surrounding code | Review the code and the tests together (below). | `.ai/slices/<id>/findings/code-reviewer.md` | `PASS` · `CHANGES_REQUIRED` |
 | `RECHECK` | Your previous findings file, your open findings in the brief (possibly none), the incremental diff since your last review | Re-check each open finding; review every line changed since your last review, including code and tests changed for other reviewers' findings. | Same file, updated | `PASS` · `CHANGES_REQUIRED` |
 | `REBUTTAL` | One finding of yours and the author's rebuttal, in the brief | Judge the rebuttal on evidence only. Review nothing else. | Nothing | `ACCEPT_REBUTTAL` · `MAINTAIN_FINDING` |

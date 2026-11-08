@@ -22,7 +22,7 @@ A **gate** is a point where work stops until a condition is met.
 | Gate | Who clears it | Condition |
 |---|---|---|
 | P0 Intake | You | You answered the intake question (or accepted defaults) |
-| P4 Questions | You | You picked a concept and answered the gaps that change the plan |
+| P4 Grill | You | You picked a concept, answered the rounds of questions (or said "enough"), and confirmed the checklist |
 | P8 Plan approval | You | You approved `PLAN.HUMAN.md` explicitly |
 | Test plan | The code-reviewer agent | `TEST_PLAN.md` says `Status: APPROVED` |
 | Merge (P9.9) | You | You approved `REVIEW.HUMAN.md` explicitly |
@@ -125,8 +125,8 @@ flowchart LR
     end
     subgraph AI[".ai/ folder in your repo"]
         st["state.json and PROJECT.md"]
-        pn["planning/: discovery.md, concepts.md"]
-        arch["ARCHITECTURE.md, INVARIANTS.md, decisions/"]
+        pn["planning/, GLOSSARY.md"]
+        arch["ARCHITECTURE.md, INVARIANTS.md, decisions/, formal/"]
         dp["DELIVERY_PLAN.md and slices/NN/SLICE.md"]
         tp["slices/NN/TEST_PLAN.md"]
         fi["slices/NN/findings/"]
@@ -157,9 +157,11 @@ flowchart LR
 | Path | Written by | Purpose |
 |---|---|---|
 | `state.json` | coordinator only | Machine state for hooks and resume: status, branches, active slice |
-| `PROJECT.md` | coordinator | Problem, goals, scope, your C-1 to C-9 answers, status, phase log |
-| `planning/` | discovery (plus reviewers' plan findings) | Repo facts, brainstorm concepts, assumptions, open questions |
-| `ARCHITECTURE.md`, `INVARIANTS.md`, `decisions/` | architect | Current and target design; properties every slice must keep |
+| `PROJECT.md` | coordinator | Problem, goals, user stories, scope, your C-1 to C-10 answers, status, phase log |
+| `GLOSSARY.md` | discovery | The project's terms, settled with you in the grill; every later artifact uses them |
+| `planning/` | discovery (plus reviewers' plan findings) | Repo facts, brainstorm concepts, assumptions, the question tree and your answers |
+| `ARCHITECTURE.md`, `INVARIANTS.md`, `decisions/` | architect | Current and target design; properties every slice must keep (readable blocks and state tables at C-10 above none); decisions, including short ADRs from the grill |
+| `formal/` | architect (the reliability reviewer writes traces) | Model-checked specs and their counterexample traces, only at C-10 `model-checked` |
 | `DELIVERY_PLAN.md`, `slices/NN/SLICE.md` | planner | Slices, order, touch sets, branches |
 | `slices/NN/TEST_PLAN.md` | verifier (code-reviewer flips the status line) | AC to test map; gated by code review |
 | `slices/NN/findings/` | each reviewer, one file each | Raw findings |

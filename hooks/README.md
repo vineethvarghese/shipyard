@@ -86,9 +86,9 @@ judged against branch `x`.
 | Agent | May Write/Edit |
 |---|---|
 | coordinator | `.ai/**` (including `state.json`) only; never the project's `.gitignore`. It may not set `Status: APPROVED` in a `TEST_PLAN.md`. |
-| discovery | `.ai/**` except `ARCHITECTURE.md`, `INVARIANTS.md`, `state.json`, `slices/**` |
+| discovery | `.ai/**` (including `GLOSSARY.md`) except `ARCHITECTURE.md`, `INVARIANTS.md`, `formal/**`, `state.json`, `slices/**` |
 | goldfish | nothing |
-| architect | `.ai/ARCHITECTURE.md`, `.ai/INVARIANTS.md`, `.ai/decisions/**`, `.ai/planning/architect.md`, `.ai/slices/*/findings/architect*.md` |
+| architect | `.ai/ARCHITECTURE.md`, `.ai/INVARIANTS.md`, `.ai/decisions/**`, `.ai/formal/**`, `.ai/planning/architect.md`, `.ai/slices/*/findings/architect*.md` |
 | planner | `.ai/DELIVERY_PLAN.md`, `.ai/slices/*/SLICE.md`, `.ai/planning/planner.md` |
 | implementer | the active slice's code touch set; never the test touch set (the test set wins when both match); never `.ai/**` |
 | verifier | the active slice's test touch set; `.ai/slices/<active>/TEST_PLAN.md` (never writing `Status: APPROVED`); `.ai/slices/<active>/findings/verifier*.md` |

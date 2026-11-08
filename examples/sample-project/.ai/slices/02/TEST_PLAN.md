@@ -14,8 +14,14 @@ may be written for this slice until the code-reviewer approves the status line a
 | AC-4 | `…::test_ac4_no_ttl_resolves_far_future` | unit | a link without expiry raises at any clock value |
 | AC-5 | `…::test_ac5_expired_link_stays_in_store` | unit | resolving deletes or mutates the stored link |
 
+## Seams under test
+`Shortener.resolve` / `Shortener.create` (from SLICE.md); every test below calls the public API only.
+
 ## Levels
 Unit only, with a mutable fake clock (`clock.now = …`) passed to `Shortener(clock=...)`.
+
+## Test doubles
+- clock: the fake clock from `tests/test_expiry_create.py` (system boundary: time). No fake of any `shortener.*` module.
 
 ## Failure and edge cases
 - Clock exactly equal to `expires_at` (expired).

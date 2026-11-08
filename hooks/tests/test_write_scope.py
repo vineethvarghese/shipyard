@@ -66,6 +66,7 @@ class Discovery(Base):
     def test_allowed(self):
         self.assertAllowed(self.write(self.A, self.abs(".ai/planning/discovery.md")))
         self.assertAllowed(self.write(self.A, self.abs(".ai/PROJECT.md")))
+        self.assertAllowed(self.write(self.A, self.abs(".ai/GLOSSARY.md")))
 
     def test_denied(self):
         for rel in (".ai/ARCHITECTURE.md", ".ai/INVARIANTS.md", ".ai/state.json", ".ai/slices/01/SLICE.md",
@@ -84,12 +85,17 @@ class Architect(Base):
 
     def test_allowed(self):
         for rel in (".ai/ARCHITECTURE.md", ".ai/INVARIANTS.md", ".ai/decisions/ADR-001.md",
-                    ".ai/planning/architect.md", ".ai/slices/01/findings/architect.md"):
+                    ".ai/planning/architect.md", ".ai/slices/01/findings/architect.md",
+                    ".ai/formal/INV-003.qnt", ".ai/formal/INV-003.trace.itf.json"):
             self.assertAllowed(self.write(self.A, self.abs(rel)))
 
     def test_denied(self):
-        for rel in (".ai/PROJECT.md", ".ai/planning/discovery.md", ".ai/state.json", "src/a.ts"):
+        for rel in (".ai/PROJECT.md", ".ai/planning/discovery.md", ".ai/state.json", ".ai/GLOSSARY.md", "src/a.ts"):
             self.assertDenied(self.write(self.A, self.abs(rel)), "shipyard:architect may write only")
+
+    def test_formal_models_are_the_architects(self):
+        for agent in ("shipyard:discovery", "shipyard:planner", "shipyard:reliability-reviewer", "shipyard:verifier"):
+            self.assertDenied(self.write(agent, self.abs(".ai/formal/INV-003.qnt")))
 
 
 class Planner(Base):

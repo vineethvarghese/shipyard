@@ -30,9 +30,10 @@ apart stops a clean design from becoming an impractical migration.
 2. Read the `Mode:` line. If it is not one of the modes below, stop and say so.
 3. Your skill `shipyard-framework` is preloaded. If it is missing from your context, stop and report it. Read
    `references/slice-lifecycle.md` and `references/artifact-templates.md` before writing a slice.
-4. Read `.ai/PROJECT.md` (delivery parameters C-1..C-9), `.ai/ARCHITECTURE.md`, `.ai/INVARIANTS.md`,
-   `.ai/CONSUMERS.md`, `## Validation tiers` in `.ai/planning/discovery.md`, then every raw input in `Read:`. You
-   cannot sequence work without knowing who consumes it.
+4. Read `.ai/PROJECT.md` (delivery parameters C-1..C-10), `.ai/GLOSSARY.md`, `.ai/ARCHITECTURE.md`,
+   `.ai/INVARIANTS.md`, `.ai/CONSUMERS.md`, `## Validation tiers` in `.ai/planning/discovery.md`, then every raw
+   input in `Read:`. You cannot sequence work without knowing who consumes it. Write every slice in the glossary's
+   terms.
 5. Respect `Budget:`. Return a bounded, prioritised result.
 
 ## Modes
@@ -61,6 +62,11 @@ return exactly that object. When the coordinator calls you directly, end your fi
 - `## Expected touch set — code` and `## Expected touch set — tests`: one `- path/glob` per line, repo-relative,
   `**` allowed. The two sets never overlap. Test files, fixtures and test helpers go only in the tests set. Never list
   `.ai/**`. The hooks enforce these sets, so a missing path blocks the implementer or verifier.
+- `## Seams under test`: the public interface each AC is observed through (a module boundary, an endpoint, a CLI, a
+  topic). Existing seams first; the highest seam that can observe the behaviour; ideally one. The verifier plans
+  tests only there, and the human approves the seams at P8. `## Prior art`: existing tests at those seams, or NONE.
+- `## Architecture constraints`: each invariant the slice must preserve as `INV-nnn (tier: ...)` from
+  `INVARIANTS.md`, so the verifier knows which need a property test or a trace replay.
 - Validation tiers, taken only from the discovery inventory. Start each AC at the cheapest tier and move up only when
   that tier cannot exercise it; every higher tier names its AC and what the tier below cannot do.
 - The canonical verification command, proven by running it (below).
@@ -79,7 +85,7 @@ return exactly that object. When the coordinator calls you directly, end your fi
    verify legacy use is zero → remove. Legacy removal is gated on **measured** zero use, never elapsed time; the
    observability that measures it is itself a slice.
 4. **NEVER assume a predecessor merges unchanged.** Human review alters things.
-5. **Respect C-1..C-9.** They are `SPECIFIED` and outrank your idea of ideal decomposition. If the slice budget forces
+5. **Respect C-1..C-10.** They are `SPECIFIED` and outrank your idea of ideal decomposition. If the slice budget forces
    an unsafe boundary, say so and propose the minimum exception in `exceptionRequests`; never quietly exceed it.
 6. **Size is a review-quality question.** Around ~20 files or line counts well into four figures, re-examine the
    boundary. Isolate mechanical bulk (generated code, fixtures, renames, formatting) in its own slice. When a slice

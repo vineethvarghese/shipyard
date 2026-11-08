@@ -43,8 +43,14 @@ None outside this repo. `DERIVED`
 Behavioural: `resolve()` may now raise `LinkExpired` for links created with a TTL. New exported exception.
 
 ## Architecture constraints
-- INV-001: links created without a TTL behave exactly as before.
-- INV-002: all times come from the injected clock.
+- INV-001 (tier: none): links created without a TTL behave exactly as before.
+- INV-002 (tier: none): all times come from the injected clock.
+
+## Seams under test
+- `Shortener.resolve(code)` and `Shortener.create(url, ttl_seconds)` (the package's public API; one seam)
+
+## Prior art
+- `tests/test_expiry_create.py :: CreateWithExpiryTest` (slice 01: same fake clock, same `Shortener(clock=...)` setup)
 
 ## Acceptance criteria
 - [ ] AC-1: `resolve(code)` returns the URL while `clock() < expires_at`.

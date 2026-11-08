@@ -40,8 +40,9 @@ it should assert, the acceptance criterion is too vague: say so.
    `Feature-branch:` and `Slice-branch:`.
 3. Your skills are preloaded: `shipyard-framework`, `test-design`, `lang-packs` (read only the language references
    the slice touches). If `shipyard-framework` or `test-design` is missing from your context, stop and report it.
-4. Read `.ai/slices/<id>/SLICE.md`, `.ai/INVARIANTS.md` and `## Validation tiers` in `.ai/planning/discovery.md`,
-   then every raw input in `Read:`. Read `references/test-plan.md` in TEST_PLAN mode.
+4. Read `.ai/slices/<id>/SLICE.md` (ACs, `## Seams under test`, `## Prior art`, `## Architecture constraints`),
+   `.ai/INVARIANTS.md`, `.ai/GLOSSARY.md` and `## Validation tiers` in `.ai/planning/discovery.md`, then every raw
+   input in `Read:`. Read `references/test-plan.md` in TEST_PLAN mode.
 5. Respect `Budget:`. Return a bounded, prioritised result.
 
 ## Modes
@@ -52,7 +53,7 @@ after it.
 
 | Mode | Do | Write | Contract |
 |---|---|---|---|
-| `TEST_PLAN` (DEEP) | Map every AC to planned tests and a level; list failure and edge cases; plan a benchmark (with workload) for every performance AC; list ACs not verifiable here with what you check instead; assign tiers from the discovery inventory only. On a revision, address every finding in `code-reviewer.test-plan.md`. | `.ai/slices/<id>/TEST_PLAN.md`: banner line, then `Status: DRAFT` within the first 10 lines | `test-plan-result` |
+| `TEST_PLAN` (DEEP) | Map every AC to planned tests, a seam and a level; every test sits at a seam `SLICE.md` declares; list failure and edge cases; plan a benchmark (with workload) for every performance AC; one row per invariant in `## Invariants exercised` naming the violating implementation it fails against (property tests at C-10 `properties` and above); name every test double and its system boundary; list ACs not verifiable here with what you check instead; assign tiers from the discovery inventory only. On a revision, address every finding in `code-reviewer.test-plan.md`. | `.ai/slices/<id>/TEST_PLAN.md`: banner line, then `Status: DRAFT` within the first 10 lines | `test-plan-result` |
 | `WRITE_TESTS` | Write the planned tests in the test touch set, derived from `SLICE.md` + `TEST_PLAN.md`. **Do not read the code the implementer is writing in parallel**; write against the interfaces the slice specifies. Red tests are expected until the code lands. **No git commands in this mode.** | Test touch set only | `author-result` (`role: "verifier"`, `commit: null`) |
 | `VERIFY` | See below. | `.ai/slices/<id>/findings/verifier.md` (full report) | `verify-result` |
 | `FIX_TESTS` | For each finding you own (tests to add, remove or reshape, an architect ruling, or a human change request): fix it in the test touch set, or rebut it once with a citation in `rebuttals` (human change requests cannot be rebutted). If the code, not the test, contradicts `TEST_PLAN.md`, say so in `testDisputes`. No git; the next VERIFY commits. | Test touch set only | `author-result` (`role: "verifier"`) |
@@ -72,6 +73,8 @@ after it.
    `discovery.md` records it. Then failure scenarios, and cancellation, lifecycle, concurrency and resource behaviour
    where the slice touches them.
 4. **Map ACs**: each verified AC names the test that proves it; every other AC goes in `acNotVerified` with why.
+   When C-10 is above `none`, also report `formal`: the tier, the invariants whose property, assertion or
+   trace-replay tests ran and passed, and the ones `notRun` with the reason. You never run a model checker.
 5. **Routing facts**: for `productionCode`, `mechanicalOnly`, `publicContract`, `concurrency`, `consumerVisible`,
    `security`, `config` (definitions in the registry), give a value and evidence (paths, hunks). Be conservative:
    when unsure, choose the value that causes more review: `true` for every trigger, `false` for `mechanicalOnly`, and

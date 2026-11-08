@@ -33,6 +33,8 @@ class BriefCheck(HookTestCase):
         self.assertAllowed(self.call("shipyard:implementer", brief("FIX", 3)))
         self.assertAllowed(self.call("shipyard:verifier", brief("FIX_TESTS", 1)))
         self.assertAllowed(self.call("shipyard:code-reviewer", brief("RECHECK", 2)))
+        self.assertAllowed(self.call("shipyard:discovery", brief("GRILL")))
+        self.assertAllowed(self.call("shipyard:discovery", brief("ELEPHANT")))
 
     def test_caller_must_come_first(self):
         self.assertDenied(self.call("shipyard:architect", brief("REVALIDATE", caller=None)), "Caller:")
