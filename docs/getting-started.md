@@ -87,8 +87,8 @@ Shipyard stops and waits for you four times. Between stops it works on its own a
 
 | Stop | When | What you see | What you do |
 |---|---|---|---|
-| 1. Intake (P0) | Right after your request | One message with the delivery limits C-1 to C-9, the feature branch and base branch, and the brainstorm breadth. Each item has a recommended default. | Answer what you care about. Anything you skip takes the default and is marked `ASSUMED`. Name the feature branch, for example `feature/lru-cache`. |
-| 2. Questions (P4) | After the repo scan and brainstorm | The top concepts, where agents disagreed, and only the gaps that change the plan. Each has a recommendation. | Pick a concept. Answer the gaps. |
+| 1. Intake (P0) | Right after your request | One message with the delivery limits C-1 to C-10, the feature branch and base branch, and the brainstorm breadth. Each item has a recommended default. | Answer what you care about. Anything you skip takes the default and is marked `ASSUMED`. Name the feature branch, for example `feature/lru-cache`. |
+| 2. Grill (P4) | After the repo scan and brainstorm | The top concepts, where agents disagreed, then rounds of numbered questions (at most 7 each) with a recommendation apiece. Between rounds the agents record your answers, settle facts from the repo and update the glossary. A short checklist at the end. | Pick a concept. Answer each round, or say "yes" to take every recommendation, or "enough" to stop. Confirm the checklist. |
 | 3. Plan approval (P8) | After the plan has been critiqued and cut into slices | `PLAN.HUMAN.md` in chat: one screen with the slices, their order, risks and anything still `ASSUMED`. | Say "approve", or ask for changes. Only an explicit approval moves on. |
 | 4. Merge approval (each slice) | After a slice is built, verified and reviewed clean | `REVIEW.HUMAN.md` in chat: recommendation first, up to three things to check, risks, one line of evidence. | Approve the merge, or ask for changes. |
 
@@ -105,6 +105,7 @@ The intake limits are:
 | C-7 | Convention posture: follow repo conventions or improve them |
 | C-8 | Feature branch and base branch |
 | C-9 | Cost budget |
+| C-10 | Formal rigour: `none`, `invariants`, `properties` or `model-checked` (see [formal-methods.md](formal-methods.md)) |
 | Breadth | Brainstorm breadth 0, 1 or 2 (see [brainstorm.md](brainstorm.md)) |
 
 Shipyard may also stop between the four stops, but only when it must:

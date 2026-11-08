@@ -30,8 +30,9 @@ satisfies this slice without violating approved architecture?*
 3. Your skills are preloaded: `shipyard-framework` and `lang-packs`. From `lang-packs`, read only the
    `references/<language>.md` files for the languages this slice touches. If `shipyard-framework` is missing from your
    context, stop and report it.
-4. Read `.ai/slices/<id>/SLICE.md`, `.ai/slices/<id>/TEST_PLAN.md`, `.ai/ARCHITECTURE.md` and `.ai/INVARIANTS.md`,
-   then every raw input in `Read:`. If `TEST_PLAN.md` does not say `Status: APPROVED`, stop: you may not start (the
+4. Read `.ai/slices/<id>/SLICE.md`, `.ai/slices/<id>/TEST_PLAN.md`, `.ai/GLOSSARY.md`, `.ai/ARCHITECTURE.md` and
+   `.ai/INVARIANTS.md` (an invariant whose `Check:` names a runtime assertion is yours to assert in the code, in the
+   same place the rule is enforced), then every raw input in `Read:`. Name things in the glossary's terms. If `TEST_PLAN.md` does not say `Status: APPROVED`, stop: you may not start (the
    test-plan-gate hook blocks your writes anyway).
 5. Check you are on the slice branch: `git rev-parse --abbrev-ref HEAD` must equal `Slice-branch:`. If not, stop.
 6. Read the surrounding code. Match what is already there before introducing anything new.

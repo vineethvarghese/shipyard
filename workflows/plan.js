@@ -1,11 +1,11 @@
 export const meta = {
   name: 'plan',
   description: 'Shipyard P5-P7: routed plan critique, capped refinement, delivery planning with sequencing checks and one cold readiness goldfish per slice.',
-  whenToUse: 'Launched by shipyard:coordinator after the P4 answers are recorded. args: {registry, contracts, planFlags {publicContract, consumerVisible, concurrency, security, config} (absent or non-boolean = uncertain = route), cycle (refine cycles already used by earlier launches; 0 on the first), answers}. Returns AWAITING_PLAN_APPROVAL, NEEDS_HUMAN (back to P4) or BLOCKED.',
+  whenToUse: 'Launched by shipyard:coordinator after the P4 grill is closed. args: {registry, contracts, planFlags {publicContract, consumerVisible, concurrency, security, config, modelChecked} (absent or non-boolean = uncertain = route), cycle (refine cycles already used by earlier launches; 0 on the first), answers, formalRigour (none|invariants|properties|model-checked, default none)}. Returns AWAITING_PLAN_APPROVAL, NEEDS_HUMAN (back to P4) or BLOCKED.',
   phases: [
     { title: 'Critique', detail: 'routed plan reviewers in parallel on the raw planning artifacts (architect and simplicity always).' },
     { title: 'Refine', detail: 'architect updates the artifacts for open findings; only reviewers with open findings recheck; capped cycles.' },
-    { title: 'Delivery plan', detail: 'planner slices the work; integration and architect check sequencing; one readiness goldfish per SLICE.md; one replan.' },
+    { title: 'Delivery plan', detail: 'planner slices the work with seams under test and prior art per slice; integration and architect check sequencing; one readiness goldfish per SLICE.md; one replan.' },
   ],
 };
 
@@ -161,7 +161,10 @@ const FLAGS = A.planFlags && typeof A.planFlags === 'object' ? A.planFlags : {};
 const CYCLE = Number.isInteger(A.cycle) && A.cycle >= 0 ? A.cycle : 0;
 let cyclesUsed = CYCLE; // returned so the coordinator relaunches with the right count
 const ANSWERS = A.answers == null ? null : (typeof A.answers === 'string' ? A.answers : json(A.answers));
-const PLANNING_READ = ['.ai/PROJECT.md', '.ai/ARCHITECTURE.md', '.ai/INVARIANTS.md', '.ai/CONSUMERS.md', '.ai/planning/discovery.md', '.ai/planning/concepts.md', '.ai/planning/open-questions.md'];
+const FORMAL_TIERS = ['none', 'invariants', 'properties', 'model-checked'];
+const FORMAL = A.formalRigour == null ? 'none' : A.formalRigour;
+if (FORMAL_TIERS.indexOf(FORMAL) === -1) throw new Error(`plan: args.formalRigour must be one of ${FORMAL_TIERS.join(', ')}, got '${A.formalRigour}'`);
+const PLANNING_READ = ['.ai/PROJECT.md', '.ai/GLOSSARY.md', '.ai/ARCHITECTURE.md', '.ai/INVARIANTS.md', '.ai/CONSUMERS.md', '.ai/planning/discovery.md', '.ai/planning/concepts.md', '.ai/planning/open-questions.md', '.ai/decisions/*.md'];
 const DELIVERY_PLAN = '.ai/DELIVERY_PLAN.md';
 const CAP = LIMITS.findingsCapPerReviewer || 15;
 
@@ -214,9 +217,12 @@ function routePlan() {
 
 function reviewBrief(roleName, mode, mine, extraText) {
   const answers = ANSWERS ? `\n\nHuman answers recorded at P4 (cycle ${CYCLE}):\n${ANSWERS}` : '';
+  const formal = `\n\nFormal rigour (C-10): ${FORMAL}.` + (roleName === 'reliability-review' && FORMAL === 'model-checked'
+    ? ' Run every model under .ai/formal/ with scripts/formal_check.py (the planted fault must fail; a model that cannot fail is a finding); render any counterexample trace as a plain-English scenario and step table in your findings file.'
+    : '');
   const text = mode === 'RECHECK' || (mode === 'CRITIQUE' && mine)
     ? `Recheck your open findings against the updated planning artifacts. Return your full current list: mark resolved findings FIXED, keep unresolved ones OPEN, add only new findings the update introduced (at most ${CAP}).${extraText || ''}\n\nYour open findings:\n${json(mine || [])}`
-    : `Critique the plan in your jurisdiction only. At most ${CAP} findings, most serious first; every finding needs evidence and Status: OPEN. Request human input only for a decision the artifacts cannot settle.${extraText || ''}${answers}`;
+    : `Critique the plan in your jurisdiction only. At most ${CAP} findings, most serious first; every finding needs evidence and Status: OPEN. Request human input only for a decision the artifacts cannot settle.${extraText || ''}${answers}${formal}`;
   return { round: null, read: PLANNING_READ, write: `.ai/planning/${shortName(roleName)}.md`, budgetTurns: mode === 'RECHECK' ? BUDGET.RECHECK : BUDGET.PLAN, text };
 }
 
@@ -286,7 +292,7 @@ async function main() {
   enter('Delivery plan');
   const plan = await call('planner', 'PLAN', {
     read: PLANNING_READ, write: [DELIVERY_PLAN, '.ai/slices/*/SLICE.md', '.ai/planning/planner.md'], budgetTurns: BUDGET.PLANNER,
-    text: 'Cut the work into thin vertical slices, each independently mergeable into the feature branch. Use two-digit sequential slice ids 01..NN and write each spec to .ai/slices/<NN>/SLICE.md with objective, acceptance criteria, "## Expected touch set — code", "## Expected touch set — tests" and "## Branch". Return the slice count in `slices`.',
+    text: `Cut the work into thin vertical slices, each independently mergeable into the feature branch. Use two-digit sequential slice ids 01..NN and write each spec to .ai/slices/<NN>/SLICE.md with objective, acceptance criteria, "## Expected touch set — code", "## Expected touch set — tests", "## Branch", "## Seams under test" (the public interface each AC is observed through: existing seam preferred, highest possible, ideally one) and "## Prior art" (similar tests already in the repository). Under "## Architecture constraints" list each invariant the slice must preserve with its C-10 tier. Use the glossary's terms. Return the slice count in \`slices\`.\n\nFormal rigour (C-10): ${FORMAL}.`,
   }, 'planner PLAN');
   if (!plan) return done('BLOCKED', 'planner PLAN returned no valid result after retry');
   noteHuman('planner', plan);
@@ -299,7 +305,7 @@ async function main() {
 
   const readinessCall = (s) => call('goldfish', 'READINESS', {
     read: [`.ai/slices/${s}/SLICE.md`], budgetTurns: BUDGET.READINESS,
-    text: `Lens: readiness\n\nRead .ai/slices/${s}/SLICE.md cold. Could a first-time implementer ship this without asking anything? Answer READY or NOT_READY; for NOT_READY list the exact questions they would have to ask.`,
+    text: `Lens: readiness\n\nRead .ai/slices/${s}/SLICE.md cold. Could a first-time implementer ship this without asking anything? Check that "## Seams under test" names at least one seam that exists in the repository. Answer READY or NOT_READY; for NOT_READY list the exact questions they would have to ask.`,
   }, `goldfish READINESS ${s}`);
 
   const sequencingJobs = [

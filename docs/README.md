@@ -10,7 +10,7 @@ feature branch and raise the pull request yourself.
 flowchart LR
     req["Your request"] --> p0["P0 Intake: you set limits and the branch"]
     p0 --> disc["Discover: scan, brainstorm, draft"]
-    disc --> p4["P4 Questions: you pick a direction"]
+    disc --> p4["P4 Grill: you pick a direction and answer rounds of questions"]
     p4 --> plan["Plan: critique, refine, cut slices"]
     plan --> p8["P8 Plan approval: you approve"]
     p8 --> loop["Slice loop × N: test plan, build, verify, review"]
@@ -44,14 +44,15 @@ New to Shipyard? Read the first four pages in order. Read the rest when you need
 | 3 | [workflow.md](workflow.md) | The phases P0 to P10 |
 | 4 | [slice-loop.md](slice-loop.md) | What happens inside one slice |
 | 5 | [architecture.md](architecture.md) | The four layers and who may call whom |
-| 6 | [brainstorm.md](brainstorm.md) | The elephant/goldfish brainstorm and readiness checks |
-| 7 | [branching.md](branching.md) | Branches, commits, the merge procedure |
-| 8 | [guardrails.md](guardrails.md) | The eight hooks and what they block |
-| 9 | [extending.md](extending.md) | Add a reviewer, an ability or a language pack |
-| 10 | [evals.md](evals.md) | Ability evals, process evals and deterministic tests |
-| 11 | [troubleshooting.md](troubleshooting.md) | Common problems and fixes |
+| 6 | [brainstorm.md](brainstorm.md) | The elephant/goldfish brainstorm, the P4 grill and readiness checks |
+| 7 | [formal-methods.md](formal-methods.md) | The optional formal rigour tiers: readable invariants, property tests, model checking |
+| 8 | [branching.md](branching.md) | Branches, commits, the merge procedure |
+| 9 | [guardrails.md](guardrails.md) | The eight hooks and what they block |
+| 10 | [extending.md](extending.md) | Add a reviewer, an ability or a language pack |
+| 11 | [evals.md](evals.md) | Ability evals, process evals and deterministic tests |
+| 12 | [troubleshooting.md](troubleshooting.md) | Common problems and fixes |
 | — | [agents/](agents/) | One page per agent, generated from the agent files and the registry |
-| — | [decisions/](decisions/) | Architecture decision records ADR-0001 to ADR-0007 |
+| — | [decisions/](decisions/) | Architecture decision records ADR-0001 to ADR-0009 |
 | — | [diagrams/](diagrams/) | Mermaid sources (`.mmd`) and rendered `.svg` files |
 
 ## Decisions
@@ -64,3 +65,6 @@ New to Shipyard? Read the first four pages in order. Read the rest when you need
 | [ADR-0004](decisions/ADR-0004-roles-not-agent-names.md) | Workflows name roles; a registry maps roles to agents |
 | [ADR-0005](decisions/ADR-0005-code-and-simplicity-reviewers-split.md) | Code review and simplicity review are separate agents |
 | [ADR-0006](decisions/ADR-0006-hooks-over-prompt-rules.md) | Hard rules are enforced by hooks, not only by prompts |
+| [ADR-0007](decisions/ADR-0007-ai-folder-stays-local.md) | The `.ai/` folder stays off the work branches |
+| [ADR-0008](decisions/ADR-0008-grill-at-p4.md) | P4 is a grill of rounds until shared understanding, with a glossary and short-form ADRs |
+| [ADR-0009](decisions/ADR-0009-formal-rigour-tiers.md) | Formal rigour is an opt-in parameter with four tiers |

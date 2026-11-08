@@ -32,9 +32,11 @@
       "agent": "shipyard:discovery",
       "modes": {
         "SCAN": "STANDARD",
+        "ELEPHANT": "DEEP",
         "DRAFT": "STANDARD",
         "SYNTHESIZE": "DEEP",
-        "QUESTIONS": "DEEP"
+        "QUESTIONS": "DEEP",
+        "GRILL": "DEEP"
       },
       "contract": "discovery-result@1",
       "skills": [
@@ -310,8 +312,10 @@
       {
         "role": "reliability-review",
         "when": [
-          "concurrency"
-        ]
+          "concurrency",
+          "modelChecked"
+        ],
+        "note": "Also routed when C-10 formal rigour is model-checked: the reviewer runs the models under .ai/formal/ and interprets any trace."
       },
       {
         "role": "security-review",
@@ -328,7 +332,8 @@
       "config": "Configuration schema or defaults that consumers set or rely on",
       "consumerVisible": "Behaviour a consumer, operator or other team can observe; onboarding; rollout; migration; deployment assumptions",
       "concurrency": "Async, concurrency, synchronization, retry, timeout, cancellation, networking, streaming, resource lifetime, shared mutable state, deployment lifecycle",
-      "security": "Authentication, authorization, tokens or secrets, tenant/user isolation, parsing untrusted input, cryptography, a new external network surface"
+      "security": "Authentication, authorization, tokens or secrets, tenant/user isolation, parsing untrusted input, cryptography, a new external network surface",
+      "modelChecked": "C-10 formal rigour is model-checked: at least one invariant has a model under .ai/formal/ that must be run with scripts/formal_check.py and its counterexample trace rendered in plain English (plan routing only)"
     }
   },
   "limits": {
@@ -336,7 +341,9 @@
     "fixRounds": 3,
     "findingsCapPerReviewer": 15,
     "reviewerRetries": 1,
-    "planRefineCycles": 2
+    "planRefineCycles": 2,
+    "grillRounds": 3,
+    "grillQuestionsPerRound": 7
   },
   "fixScope": [
     "BLOCKING",

@@ -60,7 +60,7 @@ Agent call the coordinator passes the same `model` and `effort` for the mode.
 | Role | Mode → class | Minimum | Why |
 |---|---|---|---|
 | coordinator | SESSION → COORDINATOR | COORDINATOR | Sole human interface; gates and adjudication. |
-| discovery | SCAN, DRAFT → STANDARD; SYNTHESIZE, QUESTIONS → DEEP | as listed | Scanning is high-volume, low-judgment reading. Synthesis and questions are where the value is. |
+| discovery | SCAN, DRAFT → STANDARD; ELEPHANT, SYNTHESIZE, QUESTIONS, GRILL → DEEP | as listed | Scanning is high-volume, low-judgment reading. The sealed take, synthesis, the question tree and each grill round are where the value is. |
 | goldfish | BRAINSTORM, READINESS → DEEP | DEEP | A cold mind is only useful if it is a strong one. |
 | architect | all modes → DEEP | DEEP | Broad, ambiguous, consequential. |
 | planner | all modes → DEEP | DEEP | Decomposition errors are expensive and found late. |

@@ -35,6 +35,7 @@ Short links live forever. Owners want links for time-limited campaigns to stop w
 | C-7 | Convention posture | Follow repo conventions (unittest style, dataclasses) | ASSUMED (default) |
 | C-8 | Feature branch / base branch | `feature/link-expiry` from `main` | SPECIFIED |
 | C-9 | Cost budget | Standard routing; no extra reviewers beyond triggers | ASSUMED (default) |
+| C-10 | Formal rigour | none | ASSUMED (default) |
 | — | Brainstorm breadth | 1 (technical, value, contrarian) | ASSUMED (default) |
 
 ## Stakeholders
@@ -63,9 +64,9 @@ Standard library only; pytest for tests.
 ## Phase log
 | Date | Phase | Produced |
 |------|-------|----------|
-| 2026-10-12 | P0 Intake | C-1..C-9, branch `feature/link-expiry` created from `main`, state.json |
+| 2026-10-12 | P0 Intake | C-1..C-10, branch `feature/link-expiry` created from `main`, state.json |
 | 2026-10-12 | P1–P3 Discover | planning/discovery.md, planning/concepts.md, draft ARCHITECTURE/INVARIANTS |
-| 2026-10-12 | P4 Questions | Concept A chosen; G1–G3 answered |
+| 2026-10-12 | P4 Grill | Concept A chosen; G1–G3 answered in one round; frontier empty |
 | 2026-10-13 | P5–P7 Plan | DELIVERY_PLAN.md, slices 01–02, readiness goldfish READY ×2 |
 | 2026-10-13 | P8 Plan approval | Approved by the human; slices 01–02 APPROVED |
 | 2026-10-14 | P9 Slice 01 | READY_FOR_HUMAN after 1 fix round |

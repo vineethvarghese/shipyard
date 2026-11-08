@@ -11,17 +11,26 @@ This project builds on, adapts or credits the following work.
    cold readiness check of each slice spec, and the brainstorm-elephant-goldfish
    capability skill are adapted from this method.
 
-2. "Cranky Old Sam" reviewer persona — MIT License.
+2. Grilling, domain-modelling, specification and TDD skills
+   https://github.com/mattpocock/skills — MIT License, Copyright (c) 2026 Matt Pocock.
+   The P4 grill (a design tree asked frontier by frontier until shared
+   understanding, with recommended answers a plain "yes" accepts), the inline
+   glossary with its "Avoid" lists and the three-part test for when an answer
+   becomes a decision record, the user-story and seams-under-test sections of
+   the spec, and the test discipline (tests only at pre-agreed seams, doubles
+   only at system boundaries, no tautologies) are adapted from these skills.
+
+3. "Cranky Old Sam" reviewer persona — MIT License.
    The simplicity reviewer's voice (the blunt question "should this layer exist
    at all?") is adapted from the MIT-licensed "Cranky Old Sam" reviewer persona.
 
-3. Contributed review profiles.
+4. Contributed review profiles.
    - The code reviewer (shipyard:code-reviewer) is adapted from a contributed
      code-and-test review agent.
    - The security reviewer (shipyard:security-reviewer) and the security-audit
      capability skill are adapted from a contributed security-audit profile.
 
-4. Books — ideas paraphrased, never quoted.
+5. Books — ideas paraphrased, never quoted.
    The capability skills describe ideas from these books in their own words and
    cite them by author, title and topic. No text from them is reproduced.
    - John Ousterhout, "A Philosophy of Software Design" (complexity, deep
@@ -31,11 +40,11 @@ This project builds on, adapts or credits the following work.
    - Eric Evans, "Domain-Driven Design" (ubiquitous language, bounded
      contexts, aggregates) — domain-design.
 
-5. Earlier framework.
+6. Earlier framework.
    Shipyard is a generic port of an earlier multi-agent delivery framework for
    a different command-line agent harness. See MIGRATION.md.
 
-6. Inspiration.
+7. Inspiration.
    Akash Singhal (https://github.com/akashsinghal) gave the inspiration for
    this plugin.
 

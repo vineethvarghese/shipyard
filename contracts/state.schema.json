@@ -3,7 +3,7 @@
   "$id": "https://shipyard.dev/contracts/state.schema.json",
   "title": "Shipyard state (.ai/state.json)",
   "description": "Machine-readable project state. Written only by the coordinator; read by hooks and workflows.",
-  "x-contract-version": "1.1.0",
+  "x-contract-version": "1.2.0",
   "type": "object",
   "properties": {
     "schemaVersion": {
@@ -65,6 +65,16 @@
         1,
         2
       ]
+    },
+    "formalRigour": {
+      "type": "string",
+      "enum": [
+        "none",
+        "invariants",
+        "properties",
+        "model-checked"
+      ],
+      "description": "C-10 formal rigour chosen at P0. Optional; absent means none."
     }
   },
   "required": [

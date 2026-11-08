@@ -11,7 +11,7 @@ description: >
 
 # Test quality
 
-Version 1.0.0 · used by code-review (`shipyard:code-reviewer`, TEST_PLAN, SLICE and RECHECK)
+Version 1.1.0 · used by code-review (`shipyard:code-reviewer`, TEST_PLAN, SLICE and RECHECK)
 
 Tests are code. They cost as much to maintain as production code, and a test that guards nothing is a liability: it
 slows every change and gives false confidence. Your job is to push the suite toward **just the right amount of
@@ -34,6 +34,9 @@ Read `SLICE.md` first, then `TEST_PLAN.md`. Check each item; every failed item i
 | 7 | Tests derive from ACs, not the implementation. | A planned test is described in terms of internal functions or private state rather than observable behaviour. |
 | 8 | ACs not verifiable here are listed with what is checked instead. | An AC needs a SHARED tier or a human check and the plan silently drops it. |
 | 9 | Tiers are ordered simplest first and justified. | A costly tier is planned where a cheaper one reaches the AC. |
+| 10 | Every planned test sits at a seam `SLICE.md` declares. | A test reaches past `## Seams under test` into a private module or internal collaborator; the plan invents a seam the slice never named (that is a question for the planner, not a test). |
+| 11 | Test doubles only at system boundaries. | A fake of the project's own module or an internal collaborator; a double that stands in for the code under test. |
+| 12 | Every invariant row would fail against a no-op stub. | The "would fail against a no-op stub?" column is empty, says "no", or describes a property a do-nothing implementation satisfies (a tautology). At C-10 `properties` and above, an invariant with `Check: property` has no property-based or assertion test. |
 
 **Verdict.** `APPROVE` when no item fails at `MINOR` or above. Then, and only then, flip the status line with the
 Edit tool (`Status: DRAFT` → `Status: APPROVED`); that is the only edit you may make to TEST_PLAN.md. Otherwise
@@ -63,7 +66,7 @@ Give each test (or tightly grouped block) one label:
 | Essential | Guards a real contract behaviour; a regression a user or caller would see makes it fail. | Keep. |
 | Defensible | Not strictly required, but cheap, real, or records a non-obvious decision. | Keep. |
 | Redundant | Another test already covers the same observable behaviour. | Remove. |
-| Over-engineered | Checks implementation details (private state, call order, that A calls B) instead of behaviour; breaks on refactor. | Reshape against behaviour, or remove. |
+| Over-engineered | Checks implementation details (private state, call order, that A calls B, a mocked internal collaborator) instead of behaviour at a declared seam; breaks on refactor. | Reshape against behaviour, or remove. |
 | Wrong test | Passes by coincidence; would stay green when the behaviour it names breaks. | Reshape. |
 | Borderline | Could go either way. | Say why, recommend one way. |
 
@@ -83,8 +86,11 @@ Only Redundant, Over-engineered, Wrong test and contested Borderline tests becom
    exact 3 items. Remove the weaker one.
 5. **Asserting on text that is there by accident.** The test claims to check behaviour X but matches a word that
    appears for an unrelated reason (boilerplate, a help string). It passes by coincidence and breaks on rewording.
-6. **Restating the setup.** Asserting what follows mechanically from how the test built its inputs: a value passed
-   into a constructor reads back the same; two new objects are different references.
+6. **Tautologies and restated setup.** The assertion recomputes the expected value the way the code does (the same
+   formula, the same call, the same helper), so the test can only disagree with the code if the code disagrees
+   with itself; or it asserts what follows mechanically from how the test built its inputs: a value passed into a
+   constructor reads back the same; two new objects are different references. Expected values must come from an
+   independent source: a known-good literal, a worked example, the AC's own numbers.
 7. **Smoke noise.** "Module loads" or "creates without crashing" when the build already fails in that case. Real
    smoke tests that touch an external system (database, network, model) are different and can be Essential.
 

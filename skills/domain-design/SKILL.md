@@ -4,7 +4,7 @@ description: >
   Proportional domain-modelling review method for Shipyard. The code-reviewer loads it in SLICE and RECHECK mode to
   check that new code speaks the project's language and keeps business rules where they belong; the architect
   loads it in DRAFT and CRITIQUE mode to judge domain boundaries in a plan. Covers ubiquitous language against
-  PROJECT.md key terminology, bounded contexts, entities versus value objects, aggregates that guard the rules in
+  .ai/GLOSSARY.md (the terms the human settled in the P4 grill), bounded contexts, entities versus value objects, aggregates that guard the rules in
   INVARIANTS.md, domain logic leaking into controllers or infrastructure, anti-corruption layers for external
   models, and the anemic-model smell. Tactical patterns only where domain complexity warrants them. Not for
   general readability (code-clarity) or whether a layer should exist at all (simplicity-review).
@@ -12,7 +12,7 @@ description: >
 
 # Domain design
 
-Version 1.0.0 · used by code-review (`shipyard:code-reviewer`), architect (`shipyard:architect`, DRAFT and CRITIQUE)
+Version 1.0.1 · used by code-review (`shipyard:code-reviewer`), architect (`shipyard:architect`, DRAFT and CRITIQUE)
 
 Code is easiest to change when its names and boundaries match how the people who own the problem talk about it, and
 when each business rule lives in one place that cannot be bypassed. Your job is to find where this change breaks
@@ -36,8 +36,9 @@ evidence always outranks a citation.
 
 ## How to review
 
-1. Read `.ai/PROJECT.md` → `Key terminology` (or the glossary section), `.ai/INVARIANTS.md`, and the domain parts of
-   `.ai/ARCHITECTURE.md`. If there is no terminology section, say so in a `NOTE` and judge names against the
+1. Read `.ai/GLOSSARY.md` (the project's terms, each with an `Avoid:` list, settled with the human in the P4
+   grill), `.ai/INVARIANTS.md`, and the domain parts of `.ai/ARCHITECTURE.md`. If there is no glossary, fall back
+   to `.ai/PROJECT.md` → `Key terminology`; if neither exists, say so in a `NOTE` and judge names against the
    requirement text.
 2. Read `SLICE.md` ACs, then the diff.
 3. For each check below, collect evidence before you write anything.
@@ -47,10 +48,10 @@ evidence always outranks a citation.
 Category is `domain/<check-id>`.
 
 ### ubiquitous-language
-- **Look for:** new types, fields, methods or API names that use a different word than the project's key
-  terminology (`Coupon` where the project says `Voucher`), one word used for two concepts, or technical words
-  standing in for a domain concept (`StatusFlag2`).
-- **Evidence:** the name in the diff and the term (with line) in `PROJECT.md` or the requirement.
+- **Look for:** new types, fields, methods or API names that use a different word than the glossary (`Coupon`
+  where the glossary says `Voucher`; a word on a term's `Avoid:` list), one word used for two concepts, or
+  technical words standing in for a domain concept (`StatusFlag2`).
+- **Evidence:** the name in the diff and the term (with line) in `GLOSSARY.md` or the requirement.
 - **Severity:** `MINOR`; `MAJOR` when the mismatch is in a public contract or persisted schema (hard to rename later).
 
 ### bounded-context

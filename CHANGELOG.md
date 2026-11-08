@@ -4,6 +4,38 @@ All notable changes to Shipyard are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- **P4 grill** ([ADR-0008](docs/decisions/ADR-0008-grill-at-p4.md)): discovery returns a question tree (kind,
+  dependsOn, status); the coordinator asks the frontier round by round, discovery `GRILL` recomputes between
+  rounds, terms land in a new `.ai/GLOSSARY.md` as they are settled, answers that are hard to reverse, surprising
+  and a real trade-off become short-form ADRs, and the gate ends with a shared-understanding checklist.
+  Registry limits `grillRounds` (3) and `grillQuestionsPerRound` (7).
+- **Discovery `ELEPHANT` mode**: the sealed elephant take runs at DEEP compute, separately from the STANDARD scan.
+- **Spec structure**: `PROJECT.md ## User stories`; `SLICE.md ## Seams under test` and `## Prior art`; the readiness
+  goldfish checks a seam exists; `PLAN.HUMAN.md` lists the seams and the properties being relied on.
+- **Test discipline**: tests only at declared seams, doubles only at system boundaries, expected values from an
+  independent source of truth, glossary-based names; `TEST_PLAN.md` gains `## Seams under test`,
+  an `## Invariants exercised` table with a "would fail against a no-op stub?" column and `## Test doubles`;
+  code-reviewer checks 10–12.
+- **Formal rigour C-10** ([ADR-0009](docs/decisions/ADR-0009-formal-rigour-tiers.md)): `none` | `invariants` |
+  `properties` | `model-checked`. Extended invariant blocks with plain English and state tables; property tests
+  reported in `verify-result.formal`; models under `.ai/formal/` with a planted-fault copy, run by the reliability
+  reviewer through the new stdlib `scripts/formal_check.py`, traces rendered as step tables.
+  New docs page [formal-methods.md](docs/formal-methods.md); plan routing trigger `modelChecked`.
+- `shipyard_state.py init --formal-rigour`; `state.formalRigour` (contract 1.2.0); `discovery-result` 1.1.0;
+  `verify-result` 2.1.0.
+
+### Changed
+
+- Escalation policy: "ask the whole frontier per round" replaces "never trickle"; the gap-count heuristic applies
+  per round, not to the tree.
+- Skills: brainstorm-elephant-goldfish 1.1.0, test-design 1.1.0, test-quality 1.1.0, reliability-review 1.1.0,
+  domain-design 1.0.1, shipyard-framework 1.1.0.
+- The architect's write scope gains `.ai/formal/**`; discovery may not write there.
+
 ## 0.1.0 — 2026-10-15
 
 Initial release: a generic, vendor-neutral port of an earlier multi-agent delivery framework to a Claude Code

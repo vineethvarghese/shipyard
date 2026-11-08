@@ -1,21 +1,24 @@
 ---
 name: brainstorm-elephant-goldfish
 description: >
-  Elephant/goldfish brainstorm method for Shipyard's P2 phase and P7 readiness checks. Discovery loads it in SCAN
-  mode to write the sealed elephant take, in SYNTHESIZE mode to cluster and rank goldfish concepts against the
-  C-1..C-9 constraints and repository facts, flag disagreements and write the G1..Gn gap list, and in QUESTIONS
-  mode to turn gaps into human questions. It also defines the lens prompts (technical, value, experience,
-  contrarian, market), goldfish isolation, the contrarian outsider sweep at breadth 2, and the cold readiness check
-  of a SLICE.md that the discover and plan workflows brief the goldfish with. Not for reviewing code or plans.
+  Elephant/goldfish brainstorm and P4 grill method for Shipyard. Discovery loads it in ELEPHANT mode to write the
+  sealed elephant take, in SYNTHESIZE mode to cluster and rank goldfish concepts against the C-1..C-10 constraints
+  and repository facts, flag disagreements and write the G1..Gn gap tree, in QUESTIONS mode to turn the tree into
+  the first grill round, and in GRILL mode to record the human's answers, settle facts, challenge terms against the
+  glossary and recompute the frontier round by round until shared understanding. It also defines the lens prompts
+  (technical, value, experience, contrarian, market), goldfish isolation, the contrarian outsider sweep at breadth
+  2, the glossary rules, and the cold readiness check of a SLICE.md. Not for reviewing code or plans.
 ---
 
 # Brainstorm: elephant and goldfish
 
-Version 1.0.0 · used by discovery (`shipyard:discovery`, SCAN, SYNTHESIZE and QUESTIONS); defines the goldfish
-briefs that the discover and plan workflows send to `shipyard:goldfish`
+Version 1.1.0 · used by discovery (`shipyard:discovery`, ELEPHANT, SYNTHESIZE, QUESTIONS and GRILL); defines the
+goldfish briefs that the discover and plan workflows send to `shipyard:goldfish`
 
-This method is adapted from the elephant/goldfish workflow (https://github.com/vshvedov/elephant-goldfish, MIT
-licence). Credit is also recorded in the plugin's NOTICE.
+The brainstorm method is adapted from the elephant/goldfish workflow (https://github.com/vshvedov/elephant-goldfish,
+MIT licence). The grill (a design tree asked frontier by frontier until shared understanding, with the glossary and
+decision records updated inline) is adapted from an MIT-licensed set of grilling, domain-modelling and
+specification skills. Both credits are recorded in the plugin's NOTICE.
 
 ## The idea
 
@@ -27,16 +30,18 @@ them side by side. **Where they disagree is the main signal.**
 
 | Role | Who | Sees | Produces |
 |---|---|---|---|
-| Elephant | `shipyard:discovery` (SCAN, then SYNTHESIZE) | Everything: request, repository, `discovery.md`, C-1..C-9 | The sealed elephant take; later the synthesis and gap list |
+| Elephant | `shipyard:discovery` (ELEPHANT, then SYNTHESIZE, QUESTIONS, GRILL) | Everything: request, repository, `discovery.md`, C-1..C-10 | The sealed elephant take; later the synthesis, the gap tree and each grill round |
 | Goldfish | `shipyard:goldfish` (BRAINSTORM), one per lens, in parallel | Only the verbatim request, one lens, and read-only repository code | 2–4 concepts through its lens, plus questions it would ask |
 | Readiness goldfish | `shipyard:goldfish` (READINESS), one per slice | One `SLICE.md`, files it names, repository code | READY or NOT_READY plus questions |
 
 Breadth (P0 parameter): `0` skips the brainstorm; `1` runs technical, value and contrarian; `2` runs all five lenses
 plus the contrarian outsider sweep.
 
-## Step 1 — The sealed elephant take (SCAN, before any goldfish runs)
+## Step 1 — The sealed elephant take (ELEPHANT, before any goldfish runs)
 
-At the end of SCAN, unless breadth is 0, write your own best concept to `.ai/planning/concepts.md`:
+In ELEPHANT mode (a separate, deep-compute call right after SCAN, unless breadth is 0), write your own best concept
+to `.ai/planning/concepts.md`. You have `discovery.md` and the whole repository; use them. This is the one moment
+full context is an asset rather than a bias:
 
 ```markdown
 ## Elephant take (sealed)
@@ -81,7 +86,7 @@ value is in questioning the request itself.
 
 ## Step 4 — Convergence (SYNTHESIZE)
 
-Inputs: the goldfish results, the sealed take, `discovery.md`, `PROJECT.md` (C-1..C-9). Write to `concepts.md`:
+Inputs: the goldfish results, the sealed take, `discovery.md`, `PROJECT.md` (C-1..C-10). Write to `concepts.md`:
 
 1. **Cluster.** Group concepts by underlying approach, not by wording. Two goldfish proposing "a cache in front of
    the client" from different lenses are one cluster with two sources. Record each source lens.
@@ -101,23 +106,64 @@ Inputs: the goldfish results, the sealed take, `discovery.md`, `PROJECT.md` (C-1
 
 Then write the gap list.
 
-## Step 5 — Gap list G1..Gn
+## Step 5 — Gap tree G1..Gn
 
 A gap is something the plan cannot be made safely without: an open requirement, a disagreement only a human can
-settle, a constraint that blocks every good concept, a missing fact. Highest leverage first (the gap whose answer
-makes others moot). Format:
+settle, a constraint that blocks every good concept, a term the human and the code use differently, an invariant the
+human has not stated, a missing fact. Gaps form a **design tree**: a decision opens the decisions that hang off it.
+Highest leverage first (the gap whose answer makes others moot). Format:
 
 ```markdown
 ### G3: <short title>
-Evidence: <path:line, discovery.md section, or the disagreement it comes from>
+Kind: concept | scope | term | decision | invariant | fact
+Depends on: <gap ids that must be answered or settled first | none>
+Evidence: <path:line, discovery.md section, the goldfish lens that raised it, or the disagreement it comes from>
 Why it matters: <what in the plan changes depending on the answer>
 Options: A) <option> · B) <option> · C) <option, optional>
-Recommendation: <A|B|C>, because <evidence-based reason>
+Recommendation: <A|B|C>, because <evidence-based reason>; worded so that "yes" accepts it
 Blocking?: YES — no safe default | NO — default if unanswered: <the default>
+Status: OPEN | ANSWERED | SETTLED | DEFERRED
 ```
 
-In QUESTIONS mode, the concept pick and every `Blocking?: YES` gap become the P4 question batch; non-blocking gaps
-are listed with their defaults so the human can override them in the same turn.
+Kinds: `concept` (which approach), `scope` (in or out), `term` (what a word means here; feeds `GLOSSARY.md`),
+`decision` (a design or product choice), `invariant` (a property that must always hold; feeds `INVARIANTS.md` and
+the C-10 tier), `fact` (answerable from the repository or a command). **A `fact` gap is never asked.** Settle it
+yourself, cite the evidence and mark it `SETTLED`. If you cannot, it is `UNRESOLVED` and becomes a `decision` gap
+with the evidence you have.
+
+The questions each goldfish returned become leaves of the tree, tagged with their lens in `Evidence:`, so none is
+lost; the outsider sweep's questions usually become `scope` gaps about the request itself.
+
+In QUESTIONS mode, the concept pick and the **frontier** (every `OPEN` gap whose `Depends on` are all `ANSWERED` or
+`SETTLED`, highest leverage first) become round 1 of the P4 grill. Return the frontier's ids in `frontier`; a gap
+whose dependency is still open belongs to a later round, not this one. Non-blocking gaps in the frontier are listed
+with their defaults so the human can override them in the same turn.
+
+## Step 5b — GRILL mode: recompute the frontier
+
+The coordinator calls you once per round with the round number and the human's answers, verbatim. In order:
+
+1. **Record.** Write each answer verbatim into `planning/open-questions.md` under its question (`Answer:`,
+   `Round:`), set `ANSWERED`. A skipped question takes its default: `DEFERRED`.
+2. **Settle facts.** Any new `fact` the answers raise is settled from the repository now; never carried to the human.
+3. **Challenge terms.** Compare every term the human used against `.ai/GLOSSARY.md` and the code. A conflict
+   ("the glossary defines cancellation as X, but you seem to mean Y") or a fuzzy word ("the customer or the user?")
+   becomes a `term` gap for the next round, with the two meanings and where each lives. Cross-reference with the
+   code: "the code cancels whole orders, but you just said partial cancellation is possible" is a question, not a
+   note.
+4. **Open what the answers opened.** A decision usually opens two or three narrower ones; add them with `Kind`,
+   `Depends on`, evidence and a recommendation. Invent concrete edge-case scenarios ("what happens when the retry
+   lands after the lease expired?") and make each a gap when the answer would change the plan.
+5. **Write the glossary now.** Every term settled in this round goes into `.ai/GLOSSARY.md` in this call: term, one
+   or two sentences free of implementation detail, `Avoid:` the other words seen for it, `Source:` the human's
+   words and the round. Never batch glossary edits for later. Return the terms in `glossaryTerms`.
+6. **Nominate decisions.** For each answer, judge three things: hard to reverse; surprising without context; the
+   result of a real trade-off. Return every answer as a `decisionCandidates` entry with the three flags; the
+   coordinator writes an ADR only when all three are true.
+7. **Recompute the frontier** (Step 5 definition) and return it in `frontier`, highest leverage first. An empty
+   frontier means shared understanding: nothing left silently assumed.
+
+You never talk to the human and never decide for them: a recommendation is still a question.
 
 ## Step 6 — Readiness check of a SLICE.md (P7)
 
@@ -140,17 +186,22 @@ cannot answer from approved sources become gaps.
 
 - A gap is `Blocking?: YES` only if every reasonable default could make the plan unsafe or wasted. Otherwise give
   the default and mark `NO`.
-- More than about 7 gaps usually means the scan was shallow or the request is two projects. Say which.
+- There is no cap on the size of the tree; some plans need three questions and some need forty. The cap is on
+  the **frontier**: more than about 7 gaps ready in one round usually means the tree was cut flat (dependencies
+  missing) or the request is two projects. Say which, and put the rest behind the decision they hang off.
+- A `fact` gap that reaches the human is a defect of this method, not a question.
 - A readiness `NOT_READY` needs at least one concrete question. Style or design opinions are not readiness issues.
 
 ## Examples
 
 Gaps are not reviewer findings; they use the gap format above.
 
-GOOD (evidence, consequence, options, recommendation, default):
+GOOD (kind, dependency, evidence, consequence, options, recommendation, default):
 
 ```markdown
 ### G2: Keep the existing retry contract for streaming responses?
+Kind: decision
+Depends on: G1
 Evidence: src/client/retry.go:88 retries 502 and 503; the value-lens and contrarian goldfish both propose
   streaming export, which the sealed elephant take did not.
 Why it matters: A failure after part of a stream is sent would be retried and duplicate rows downstream; the answer
@@ -158,12 +209,15 @@ Why it matters: A failure after part of a stream is sent would be retried and du
 Options: A) Partial-stream failure is terminal · B) Resumable cursor with idempotency key
 Recommendation: A, because no consumer in CONSUMERS.md needs resume and B adds a protocol change.
 Blocking?: NO — default if unanswered: A
+Status: OPEN
 ```
 
 BAD (no evidence, no options, nothing decided by the answer):
 
 ```markdown
 ### G5: Error handling
+Kind: decision
+Depends on: none
 Evidence: none
 Why it matters: Errors are important.
 Options: -
@@ -176,7 +230,9 @@ blocking with no reason.
 
 ## Out of jurisdiction
 
-- Choosing the concept: the human picks at P4. You recommend.
-- Architecture and invariants: the architect drafts them from your outputs.
+- Choosing the concept, or answering any question for the human: the human picks at P4. You recommend.
+- Talking to the human: only the coordinator does; you return the frontier.
+- Architecture and invariants: the architect drafts them from your outputs (an `invariant` gap's answer is its
+  input, not your `INVARIANTS.md` entry).
 - Slicing the work: the planner.
 - Editing the sealed take after any goldfish has run: never.

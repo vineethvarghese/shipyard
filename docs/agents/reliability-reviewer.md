@@ -36,7 +36,7 @@ Max turns: 40.
 
 ## When it is selected
 
-- **Plan review:** when any of: `concurrency` (Async, concurrency, synchronization, retry, timeout, cancellation, networking, streaming, resource lifetime, shared mutable state, deployment lifecycle)
+- **Plan review:** when any of: `concurrency` (Async, concurrency, synchronization, retry, timeout, cancellation, networking, streaming, resource lifetime, shared mutable state, deployment lifecycle); `modelChecked` (C-10 formal rigour is model-checked: at least one invariant has a model under .ai/formal/ that must be run with scripts/formal_check.py and its counterexample trace rendered in plain English (plan routing only)). Also routed when C-10 formal rigour is model-checked: the reviewer runs the models under .ai/formal/ and interprets any trace.
 - **Slice review:** when any of: `concurrency` (Async, concurrency, synchronization, retry, timeout, cancellation, networking, streaming, resource lifetime, shared mutable state, deployment lifecycle)
 - An uncertain trigger counts as set: the reviewer is routed.
 

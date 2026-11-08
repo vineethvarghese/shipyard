@@ -42,8 +42,9 @@ Step by step:
 1. **Slice branch.** The coordinator creates `<feature>-slice-<id>` from the tip of the feature branch, checks it
    out, and records it in `state.json`. Then it launches the workflow.
 2. **Test plan.** The verifier writes `.ai/slices/<id>/TEST_PLAN.md` with `Status: DRAFT`. It maps every
-   acceptance criterion to planned tests and lists failure cases, benchmarks for performance criteria, and what
-   cannot be verified here.
+   acceptance criterion to planned tests at the seams the slice declares, lists failure cases, benchmarks for
+   performance criteria, the invariants exercised (with a property test each at C-10 `properties` and above), the
+   test doubles and their system boundaries, and what cannot be verified here.
 3. **Test-plan gate.** The code-reviewer reviews the plan. On APPROVE it changes only the status line to
    `Status: APPROVED` and reads it back; if the change did not land, the workflow stops before anything is built.
    On REVISE the verifier revises. After 2 revisions without approval, the workflow returns `ESCALATE`. Once

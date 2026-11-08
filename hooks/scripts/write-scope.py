@@ -115,9 +115,9 @@ def check_discovery(ctx, rel):
     if not lib.under_ai(rel):
         ctx.deny("shipyard:discovery writes only under .ai/, not '%s'." % rel)
     if rel in (".ai/ARCHITECTURE.md", ".ai/INVARIANTS.md", ".ai/state.json") or rel.startswith(".ai/slices/") \
-            or rel == ".ai/slices":
-        ctx.deny("shipyard:discovery may not write '%s' (ARCHITECTURE.md and INVARIANTS.md belong to the "
-                 "architect, state.json to the coordinator, slices/** to the planner and slice agents)." % rel)
+            or rel == ".ai/slices" or rel.startswith(".ai/formal/") or rel == ".ai/formal":
+        ctx.deny("shipyard:discovery may not write '%s' (ARCHITECTURE.md, INVARIANTS.md and formal/** belong to "
+                 "the architect, state.json to the coordinator, slices/** to the planner and slice agents)." % rel)
 
 
 def check_list(ctx, rel, patterns, label):
@@ -208,11 +208,11 @@ def check_path(ctx, rel):
     elif agent == "goldfish":
         ctx.deny("shipyard:goldfish writes nothing; return your ideas in the structured result instead.")
     elif agent == "architect":
-        check_list(ctx, rel, [".ai/ARCHITECTURE.md", ".ai/INVARIANTS.md", ".ai/decisions/**",
+        check_list(ctx, rel, [".ai/ARCHITECTURE.md", ".ai/INVARIANTS.md", ".ai/decisions/**", ".ai/formal/**",
                               ".ai/planning/architect.md", ".ai/slices/*/findings/architect.md",
                               ".ai/slices/*/findings/architect.*.md"],
-                   ".ai/ARCHITECTURE.md, .ai/INVARIANTS.md, .ai/decisions/**, .ai/planning/architect.md and "
-                   "its findings files")
+                   ".ai/ARCHITECTURE.md, .ai/INVARIANTS.md, .ai/decisions/**, .ai/formal/**, "
+                   ".ai/planning/architect.md and its findings files")
     elif agent == "planner":
         check_list(ctx, rel, [".ai/DELIVERY_PLAN.md", ".ai/slices/*/SLICE.md", ".ai/planning/planner.md"],
                    ".ai/DELIVERY_PLAN.md, .ai/slices/*/SLICE.md and .ai/planning/planner.md")

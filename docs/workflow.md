@@ -4,11 +4,11 @@ Shipyard runs eleven phases. Four of them are stops where you decide. The rest r
 
 ```mermaid
 flowchart TD
-    P0["P0 Intake: limits, branch, breadth"]
+    P0["P0 Intake: limits, branch, breadth, formal rigour"]
     subgraph DW["Workflow: discover"]
         P1["P1 Scan"] --> P2["P2 Brainstorm and narrow"] --> P3["P3 Draft"]
     end
-    P4["P4 Questions: concept pick and gaps"]
+    P4["P4 Grill: concept pick, then rounds of questions until shared understanding"]
     subgraph PW["Workflow: plan"]
         P5["P5 Plan critique"] --> P6["P6 Refine, up to 2 cycles"] --> P7["P7 Delivery planning"]
     end
@@ -40,15 +40,15 @@ The yellow boxes are the four human stops.
 
 | Phase | What runs | Run by | What you see |
 |---|---|---|---|
-| **P0 Intake** (stop) | Size check. One batched question: C-1 to C-9 and brainstorm breadth, each with a default. Branch check and creation. `state.json` written. `.ai/` kept off the work branches (`.git/info/exclude`) and snapshotted to the notes branch `<feature>-shipyard`. | Coordinator | One message to answer. A refusal if you name `main`, `master` or another protected branch. |
-| P1 Scan | Discovery reads the repo: build, tests, structure, consumers, validation tiers. | `/shipyard:discover` | Status lines |
-| P2 Brainstorm and narrow | Elephant/goldfish brainstorm, then synthesis and a gap list. Skipped at breadth 0. | `/shipyard:discover` | Status lines |
-| P3 Draft | Discovery drafts the planning artifacts and the questions for you. | `/shipyard:discover` | Status lines |
-| **P4 Questions** (stop) | Concept pick and the gaps that change the plan, in one turn, with recommendations. | Coordinator | Top concepts, disagreements, gaps |
-| P5 Plan critique | Architect and simplicity reviewer always. Contract, integration, reliability and security reviewers when triggered. | `/shipyard:plan` | Status lines |
+| **P0 Intake** (stop) | Size check. One batched question: C-1 to C-10 (C-10 is the optional formal rigour tier, see [formal-methods.md](formal-methods.md)) and brainstorm breadth, each with a default. Branch check and creation. `state.json` written. `.ai/` kept off the work branches (`.git/info/exclude`) and snapshotted to the notes branch `<feature>-shipyard`. | Coordinator | One message to answer. A refusal if you name `main`, `master` or another protected branch. |
+| P1 Scan | Discovery reads the repo: build, tests, structure, consumers, validation tiers, the terms the code uses. Then, at deep compute, it seals its own elephant take. | `/shipyard:discover` | Status lines |
+| P2 Brainstorm and narrow | Goldfish brainstorm, then synthesis and a gap tree (each gap with its kind and the gaps it depends on). Skipped at breadth 0. | `/shipyard:discover` | Status lines |
+| P3 Draft | Discovery drafts the planning artifacts, user stories and the glossary; the architect drafts the architecture and invariants at the chosen rigour tier; discovery drafts round 1 of the grill. | `/shipyard:discover` | Status lines |
+| **P4 Grill** (stop) | The concept pick, then rounds: each round asks every question whose prerequisites are settled (at most 7), with a recommendation a plain "yes" accepts. Between rounds discovery records your answers, settles facts from the repo, challenges terms, writes the glossary and recomputes. Ends when nothing is left to ask, when you say "enough", or after 3 rounds (you can ask for more), with a short checklist you confirm. Decisions that are hard to reverse become short ADRs. | Coordinator, with discovery `GRILL` between rounds | Top concepts, disagreements, then numbered questions per round, then the checklist |
+| P5 Plan critique | Architect and simplicity reviewer always. Contract, integration, reliability and security reviewers when triggered; at C-10 `model-checked` the reliability reviewer also runs the formal models and renders any counterexample. | `/shipyard:plan` | Status lines |
 | P6 Refine | Fix the plan from the critique. At most 2 cycles. New questions for you end the workflow and go back to P4. | `/shipyard:plan` | Status lines, or new questions |
-| P7 Delivery planning | Planner cuts slices with touch sets. Integration and architect check the order. One readiness goldfish per `SLICE.md`. | `/shipyard:plan` | Status lines |
-| **P8 Plan approval** (stop) | `PLAN.HUMAN.md` shown in chat. Your explicit approval moves every slice to `APPROVED`. | Coordinator | One-screen plan brief |
+| P7 Delivery planning | Planner cuts slices with touch sets, seams under test and prior art. Integration and architect check the order. One readiness goldfish per `SLICE.md`. | `/shipyard:plan` | Status lines |
+| **P8 Plan approval** (stop) | `PLAN.HUMAN.md` shown in chat: slices, the seams their tests observe, the properties you rely on, risks. Your explicit approval moves every slice to `APPROVED`. | Coordinator | One-screen plan brief |
 | P9 Slice | Coordinator creates the slice branch. The workflow runs test plan, build, verify, review and fix rounds. Coordinator writes the evidence and brief. | Coordinator, then `/shipyard:slice` | Status lines; a question if a shared tier is needed; an escalation if it cannot converge |
 | **P9.9 Merge** (stop) | You approve. Coordinator checks, merges with `--no-ff` into the feature branch, re-runs the tests. | Coordinator | `REVIEW.HUMAN.md` in chat, then a merge result |
 | P10 Reconcile | Compare plan with reality. Architect REVALIDATE, planner RECONCILE. A replan or architecture decision goes back to P8. | Coordinator, direct calls | A short summary, or a new plan to approve |

@@ -10,7 +10,7 @@ yourself.
 flowchart LR
     req["Your request"] --> p0["P0 Intake: you set limits and the branch"]
     p0 --> disc["Discover: scan, brainstorm, draft"]
-    disc --> p4["P4 Questions: you pick a direction"]
+    disc --> p4["P4 Grill: you pick a direction and answer rounds of questions"]
     p4 --> plan["Plan: critique, refine, cut slices"]
     plan --> p8["P8 Plan approval: you approve"]
     p8 --> loop["Slice loop × N: test plan, build, verify, review"]
@@ -86,8 +86,8 @@ Full walkthrough: [docs/getting-started.md](docs/getting-started.md).
 
 | Stop | When | You decide |
 |---|---|---|
-| **P0 Intake** | Right after your request | Delivery limits C-1..C-9, the feature branch and base branch, brainstorm breadth. Skipped items take a marked default. |
-| **P4 Questions** | After the repo scan and brainstorm | Which concept to build, and the gaps that change the plan. |
+| **P0 Intake** | Right after your request | Delivery limits C-1..C-10 (C-10 is the optional formal rigour tier), the feature branch and base branch, brainstorm breadth. Skipped items take a marked default. |
+| **P4 Grill** | After the repo scan and brainstorm | Which concept to build, then rounds of questions until nothing is silently assumed. Each has a recommendation a plain "yes" accepts; "enough" ends it. |
 | **P8 Plan approval** | After critique and slicing | Approve `PLAN.HUMAN.md`, or ask for changes. |
 | **Merge approval** | After each slice is clean | Merge the slice into the feature branch, or request changes (`REVIEW.HUMAN.md`). |
 
@@ -99,9 +99,9 @@ block — always with a one-line reason and a recommendation.
 | Agent | One line |
 |---|---|
 | `coordinator` | The only entry point: runs phases, gates, state, branches, merges and human briefs. |
-| `discovery` | Scans the repo, synthesises the brainstorm, drafts artifacts and the gap list. |
+| `discovery` | Scans the repo, seals the elephant take, synthesises the brainstorm, drafts artifacts and the glossary, runs the grill rounds. |
 | `goldfish` | Context-free thinker: one brainstorm lens, or a cold readiness read of a slice spec. |
-| `architect` | Architecture, invariants, plan critique, dispute adjudication, post-merge revalidation. |
+| `architect` | Architecture, invariants (and formal models at C-10 model-checked), plan critique, dispute adjudication, post-merge revalidation. |
 | `planner` | Cuts the work into vertical slices with touch sets, order and branches. |
 | `implementer` | Writes production code for one approved slice. Never tests. |
 | `verifier` | The slice's test engineer: test plan, tests, verification and routing facts. Never production code. |
@@ -145,7 +145,7 @@ examples/           a tiny sample project with an illustrative .ai/ folder
 
 - [Getting started](docs/getting-started.md) · [Concepts](docs/concepts.md) · [Workflow P0–P10](docs/workflow.md)
 - [The slice loop](docs/slice-loop.md) · [Architecture](docs/architecture.md) · [Brainstorm](docs/brainstorm.md)
-- [Branching](docs/branching.md) · [Guardrails](docs/guardrails.md) · [Extending](docs/extending.md)
+- [Formal rigour](docs/formal-methods.md) · [Branching](docs/branching.md) · [Guardrails](docs/guardrails.md) · [Extending](docs/extending.md)
 - [Evals](docs/evals.md) · [Troubleshooting](docs/troubleshooting.md) · [Decisions (ADRs)](docs/decisions/)
 - [Sample project](examples/sample-project/README.md) · [Migration from the earlier framework](MIGRATION.md)
 - [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Changelog](CHANGELOG.md)
@@ -155,9 +155,10 @@ examples/           a tiny sample project with an illustrative .ai/ folder
 Shipyard was inspired by [Akash Singhal](https://github.com/akashsinghal).
 
 Shipyard's brainstorm builds on the elephant/goldfish method
-([elephant-goldfish](https://github.com/vshvedov/elephant-goldfish), MIT). The simplicity reviewer's voice is
-adapted from the MIT-licensed "Cranky Old Sam" reviewer persona. Ideas from Ousterhout, Gregg and Evans are
-paraphrased, never quoted. Full credits: [NOTICE](NOTICE).
+([elephant-goldfish](https://github.com/vshvedov/elephant-goldfish), MIT). The P4 grill, the glossary and the
+seam-first test discipline adapt [Matt Pocock's skills](https://github.com/mattpocock/skills) (MIT). The simplicity
+reviewer's voice is adapted from the MIT-licensed "Cranky Old Sam" reviewer persona. Ideas from Ousterhout, Gregg
+and Evans are paraphrased, never quoted. Full credits: [NOTICE](NOTICE).
 
 ## Licence
 

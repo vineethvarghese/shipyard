@@ -34,8 +34,8 @@ the human.
 
 No discretion. These go to the human even when the coordinator is confident of the answer:
 
-- the P0 delivery parameters (C-1..C-9 and brainstorm breadth), the P4 concept pick and plan-changing gaps, P8 plan
-  approval, and every slice merge;
+- the P0 delivery parameters (C-1..C-10 and brainstorm breadth), the P4 grill (the concept pick, every round's
+  frontier of plan-changing gaps, and the shared-understanding checklist), P8 plan approval, and every slice merge;
 - any change a consumer outside the system can observe: public contract, wire or persisted data format, externally
   visible behaviour, or a compatibility break;
 - anything irreversible or materially expensive: a new dependency or platform choice, or a rollout with real
@@ -102,8 +102,11 @@ it.
 When a fail-closed stop is being reported, also set `Status: BLOCKED` with a one-line `Blocked reason:` in
 `PROJECT.md` and `state.json` (`shipyard_state.py set-status BLOCKED`) before asking, so a resumed session sees it.
 
-## Batching
+## Batching and rounds
 
 Group related questions into one turn and order them by leverage — the answer to the first often makes later ones
-moot. Do not trickle out one question per turn; that is the interaction pattern this framework exists to remove. A
-question the human can answer only by looking at the same code an agent could have read is a failure of discovery.
+moot. Ask the whole **frontier** per round (every question whose prerequisites are settled, capped at
+`registry.limits.grillQuestionsPerRound`), never one question per turn; one-at-a-time trickling is the interaction
+pattern this framework exists to remove. A question that depends on an unanswered one belongs to a later round, not
+to this one: asking it now forces the human to answer twice. A question the human can answer only by looking at the
+same code an agent could have read is a failure of discovery.

@@ -55,6 +55,15 @@ class Init(StateTestCase):
         self.assertEqual(s["protectedBranches"], ["main", "release", "develop"])
         self.assertEqual(s["brainstormBreadth"], 2)
 
+    def test_formal_rigour_recorded_only_when_set(self):
+        proc = self.init("feature/x", "main", "--formal-rigour", "properties")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(self.read()["formalRigour"], "properties")
+        self.assertSchemaValid()
+        self.state("init", "--project", "demo", "--feature-branch=feature/y", "--base-branch=main", "--force")
+        self.assertNotIn("formalRigour", self.read())
+        self.assertSchemaValid()
+
     def test_refuses_main_master_base_and_protected(self):
         cases = [("main", "main"), ("master", "main"), ("develop", "develop"), ("main", "develop"),
                  ("release", "develop", "--protected", "release")]

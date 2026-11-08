@@ -7,7 +7,8 @@ written atomically.
 
 Usage (run from inside the target repo, or pass --repo PATH):
     shipyard_state.py init --project NAME --feature-branch F --base-branch B
-                           [--protected a,b] [--breadth 0|1|2] [--force]
+                           [--protected a,b] [--breadth 0|1|2]
+                           [--formal-rigour none|invariants|properties|model-checked] [--force]
     shipyard_state.py show [--get KEY]
     shipyard_state.py set-status STATUS
     shipyard_state.py set-slice ID|none [--slice-branch NAME]
@@ -303,6 +304,8 @@ def cmd_init(repo, args):
         "sliceBranch": None,
         "brainstormBreadth": args.breadth,
     }
+    if args.formal_rigour and args.formal_rigour != "none":
+        state["formalRigour"] = args.formal_rigour
     state["notesBranch"] = notes_branch_for(repo, state, args.notes_branch)
     print("wrote %s" % write_state(repo, state))
     return 0
@@ -365,6 +368,8 @@ def build_parser():
     p.add_argument("--base-branch", required=True)
     p.add_argument("--protected", help="comma-separated protected branches (default: main,master)")
     p.add_argument("--breadth", type=int, choices=[0, 1, 2], default=1, help="brainstorm breadth (default 1)")
+    p.add_argument("--formal-rigour", choices=["none", "invariants", "properties", "model-checked"], default="none",
+                   help="C-10 formal rigour (default none)")
     p.add_argument("--force", action="store_true", help="overwrite an existing state.json")
     p.add_argument("--notes-branch", help="branch for .ai/ snapshots (default: <feature-branch>-shipyard)")
     p.set_defaults(func=cmd_init)

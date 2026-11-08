@@ -35,15 +35,24 @@ implementation, which does not exist yet.
    `Status: APPROVED`.
 2. **AC → planned tests.** Every acceptance criterion maps to one or more named tests (`file :: test name`), each
    with its level and what it proves. Test files lie inside the slice's test touch set.
-3. **Levels** — `unit`, `integration`, `e2e`, `benchmark` or `tier` — and why each AC sits at its level. Use the
+3. **Seams under test**, copied from `SLICE.md`: every planned test observes behaviour through one of them. A test
+   that would need another seam is a question for the planner (`humanInputRequested` or a `NOTE`), never a test.
+4. **Levels** — `unit`, `integration`, `e2e`, `benchmark` or `tier` — and why each AC sits at its level. Use the
    lowest level that can actually observe the behaviour.
 4. **Failure, edge and boundary cases**, each tied to an AC: empty, one, many, limits and limit+1, invalid input,
    time-outs, cancellation, partial failure, concurrent access where relevant.
-5. **Benchmarks** for every performance AC: what is measured, the baseline, the threshold, the command.
-6. **ACs not verifiable here**, each with why and what is checked instead.
-7. **Validation tiers** from `discovery.md`: name, `LOCAL` or `SHARED`, which ACs, why the tier is needed.
-8. **Deliberately not tested**, with the reason — for example a property the type system already guarantees.
-9. **Commands**: the canonical suite command and the narrowest command per planned test file.
+6. **Benchmarks** for every performance AC: what is measured, the baseline, the threshold, the command.
+7. **Invariants exercised**: a table `INV | Tier | Test (file :: name) | Would fail against a no-op stub?` for every
+   invariant the slice names under `## Architecture constraints`. At C-10 `properties` and above, an invariant whose
+   `Check:` says `property` gets a property-based test (the repository's library, per `lang-packs`) or a test that
+   proves its runtime assertion fires. The last column must say how the test would fail against an implementation
+   that does nothing: a property that passes against a no-op stub is a tautology.
+8. **Test doubles**: each fake and the system boundary it stands in for (an external API, the clock, randomness,
+   the file system where unavoidable). Never a fake of the project's own module or an internal collaborator.
+9. **ACs not verifiable here**, each with why and what is checked instead.
+10. **Validation tiers** from `discovery.md`: name, `LOCAL` or `SHARED`, which ACs, why the tier is needed.
+11. **Deliberately not tested**, with the reason — for example a property the type system already guarantees.
+12. **Commands**: the canonical suite command and the narrowest command per planned test file.
 
 ## What the code-reviewer checks in TEST_PLAN mode
 
@@ -60,6 +69,8 @@ The code-reviewer reads only the raw `SLICE.md` and `TEST_PLAN.md` (no diff — 
 | **Tests derive from ACs, not implementation** | Planned tests that name private helpers or internal call order the spec never mentions. |
 | **Touch set and tiers** | A planned test file outside the test touch set; a `SHARED` tier presented as routine. |
 | **ACs not verifiable here** | Silently missing ACs instead of a named entry with what is checked instead. |
+| **Every test at a declared seam** | A planned test that reaches past `## Seams under test` into a private module or an internal collaborator; a seam the slice never declared. |
+| **Doubles only at system boundaries** | A fake of the project's own module, a mocked internal collaborator, or an invariant property that would still pass against a no-op stub. |
 
 Each gap is a finding in the standard schema (`finding-schema.md`) with `Owner: verifier`, written to
 `.ai/slices/<id>/findings/code-reviewer.test-plan.md`. Verdict `REVISE` if any `BLOCKING`, `MAJOR` or `MINOR` finding

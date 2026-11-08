@@ -31,9 +31,9 @@ Prompts tell agents the rules. Hooks make the important rules hard to break. Shi
 | Agent | May write or edit |
 |---|---|
 | coordinator | `.ai/**` (including `state.json`) only. Never the project's `.gitignore`: `.ai/` is ignored through `.git/info/exclude`. |
-| discovery | `.ai/**` except `ARCHITECTURE.md`, `INVARIANTS.md`, `state.json`, `slices/**` |
+| discovery | `.ai/**` (including `GLOSSARY.md`) except `ARCHITECTURE.md`, `INVARIANTS.md`, `formal/**`, `state.json`, `slices/**` |
 | goldfish | Nothing. It returns structured output only. |
-| architect | `.ai/ARCHITECTURE.md`, `.ai/INVARIANTS.md`, `.ai/decisions/**`, `.ai/planning/architect.md`, its findings files |
+| architect | `.ai/ARCHITECTURE.md`, `.ai/INVARIANTS.md`, `.ai/decisions/**`, `.ai/formal/**`, `.ai/planning/architect.md`, its findings files |
 | planner | `.ai/DELIVERY_PLAN.md`, `.ai/slices/*/SLICE.md`, `.ai/planning/planner.md` |
 | implementer | The active slice's code touch set. Never the test touch set. Never `.ai/**`. |
 | verifier | The active slice's test touch set; `.ai/slices/<active>/TEST_PLAN.md` (never setting APPROVED); its findings file |

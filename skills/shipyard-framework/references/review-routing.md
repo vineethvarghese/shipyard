@@ -79,8 +79,9 @@ answer (`ACCEPT_REBUTTAL` or `MAINTAIN_FINDING`) on the `rebuttal-response` cont
 ## Plan routing (inside `/shipyard:plan`)
 
 Before any slice exists, `registry.routing.plan` applies. The coordinator passes `planFlags` to `/shipyard:plan`: the
-booleans `publicContract`, `config`, `consumerVisible`, `concurrency` and `security`, each set from `discovery.md`,
-the chosen concept (ADR-000) and the P4 answers, with an uncertain flag set `true`.
+booleans `publicContract`, `config`, `consumerVisible`, `concurrency`, `security` and `modelChecked`, each set from
+`discovery.md`, the chosen concept (ADR-000), the P4 answers and C-10, with an uncertain flag set `true`
+(`modelChecked` is simply "C-10 is `model-checked`").
 
 | Role | Runs when |
 |---|---|
@@ -88,7 +89,7 @@ the chosen concept (ADR-000) and the P4 answers, with an uncertain flag set `tru
 | `simplicity-review` | always — complexity is cheapest to delete before any of it is built |
 | `contract-review` | `publicContract` or `config` |
 | `integration-review` | `consumerVisible` |
-| `reliability-review` | `concurrency` |
+| `reliability-review` | `concurrency` or `modelChecked` (it runs the models under `.ai/formal/` and renders any trace) |
 | `security-review` | `security` |
 
 Rows are additive. One critique pass, then bounded rechecks only for reviewers whose jurisdiction materially changed

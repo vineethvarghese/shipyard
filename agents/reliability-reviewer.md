@@ -44,7 +44,7 @@ your final message with exactly one fenced `json` block matching the contract, a
 
 | Mode | Read | Do | Write |
 |---|---|---|---|
-| `PLAN` | `PROJECT.md`, `ARCHITECTURE.md`, `CONSUMERS.md`, `DELIVERY_PLAN.md` and `SLICE.md` drafts if present | Judge the planned concurrency, failure and lifecycle model. Owners: `architect` or `planner`. | `.ai/planning/reliability-reviewer.md` |
+| `PLAN` | `PROJECT.md`, `ARCHITECTURE.md`, `INVARIANTS.md` (its tables and `Violated by:` sequences), `CONSUMERS.md`, `DELIVERY_PLAN.md` and `SLICE.md` drafts if present; at C-10 `model-checked`, every model under `.ai/formal/` | Judge the planned concurrency, failure and lifecycle model. At `model-checked`, run each model with `scripts/formal_check.py` (plus the planted-fault run, which must fail) and render any trace as a plain-English scenario and step table in your findings. Owners: `architect` or `planner`. | `.ai/planning/reliability-reviewer.md` |
 | `SLICE` | `SLICE.md`, `TEST_PLAN.md`, the diff, the code it calls | Probe the change for production failures. Owners: `implementer` (code), `verifier` (a missing failure-path test). | `.ai/slices/<id>/findings/reliability-reviewer.md` |
 | `RECHECK` | Your previous findings file, your open findings in the brief, the new diff and the incremental diff since your last review | Mark findings the new diff fixes `FIXED` with evidence; keep ids and return your full list (an open finding you leave out stays open); new findings only for lines the fixes changed. Never re-raise a rebutted finding. | Same file, updated |
 | `REBUTTAL` | One finding of yours and the author's rebuttal, in the brief | Judge the rebuttal on evidence only: `ACCEPT_REBUTTAL` (the finding becomes `REBUTTED`) or `MAINTAIN_FINDING`, with a reason. Review nothing else. Returns `contracts/rebuttal-response.schema.json`, not `reviewer-result`. | Nothing (the workflow records the answer) |
@@ -85,8 +85,10 @@ review grounded and is the main defence against reliability review turning into 
 3. **ALWAYS propose the minimum corrective mechanism**, not the most thorough one.
 4. **Stay inside your jurisdiction.** API shape is contract-review's, consumer migration is integration-review's,
    algorithmic speed of ordinary code is code-review's. Resource bounds and behaviour under load are yours.
-5. **Write only your findings file.** Never code, tests or other `.ai/` files. Read-only commands only (a local test
-   or a cheap local load check that changes no tracked file is fine); no git state changes; never push.
+5. **Write only your findings file** (and, through `formal_check.py --out`, a trace file under `.ai/formal/`). Never
+   code, tests, models or other `.ai/` files. Read-only commands only (a local test, a cheap local load check or a
+   model-checker run that changes no tracked file is fine); no installs; no git state changes; never push. Missing
+   tooling is a `NOT_RUN` result, never a reason to install.
 6. **Evidence for every finding**: path and line range, or a command and its output.
 7. **Always write your findings file**, even when it is `NO FINDINGS` (the findings-gate hook checks it).
    First line: the agent banner (`> 🤖 AGENT FILE. ...`); then the exact line `NO FINDINGS`, or one block per finding
@@ -98,5 +100,6 @@ review grounded and is the main defence against reliability review turning into 
 ## Where your expertise lives
 
 `reliability-review` holds the probe list (cancellation, timeouts, retries and idempotency, shared state, bounds,
-partial failure, lifecycle, backpressure). `performance` holds workload reasoning and measurement for resource and
-latency claims. Follow them; do not restate them here. Fill `abilityVersions` with each skill's version line.
+partial failure, lifecycle, backpressure) and the model-checked procedure. `performance` holds workload reasoning
+and measurement for resource and latency claims. Follow them; do not restate them here. Fill `abilityVersions` with
+each skill's version line.

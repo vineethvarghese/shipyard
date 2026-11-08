@@ -11,7 +11,7 @@ description: >
 
 # Test design
 
-Version 1.0.0 · used by verifier (`shipyard:verifier`, TEST_PLAN, WRITE_TESTS, FIX_TESTS and VERIFY)
+Version 1.1.0 · used by verifier (`shipyard:verifier`, TEST_PLAN, WRITE_TESTS, FIX_TESTS and VERIFY)
 
 You produce **executable evidence** that a slice meets its acceptance criteria (ACs), and an honest list of what is
 still unproven. Tests derive from requirements, never from the implementation:
@@ -27,7 +27,8 @@ the code, the AC is too vague: say so in `acNotVerifiable` or as a question, nev
 
 ## Part 1 — TEST_PLAN.md (TEST_PLAN mode)
 
-Read `SLICE.md`, `.ai/INVARIANTS.md`, and `.ai/planning/discovery.md` → `## Validation tiers`. Write
+Read `SLICE.md` (its ACs, `## Seams under test`, `## Prior art` and `## Architecture constraints`),
+`.ai/INVARIANTS.md`, `.ai/GLOSSARY.md`, and `.ai/planning/discovery.md` → `## Validation tiers`. Write
 `.ai/slices/<id>/TEST_PLAN.md` in this shape:
 
 ```markdown
@@ -35,10 +36,13 @@ Read `SLICE.md`, `.ai/INVARIANTS.md`, and `.ai/planning/discovery.md` → `## Va
 Status: DRAFT
 # Test plan — slice <id>: <title>
 
+## Seams under test
+- `Cache.get` / `Cache.put` (public module interface, from SLICE.md)
+
 ## AC → tests
-| AC | Planned test (file :: name) | Level | Proves |
-|---|---|---|---|
-| AC-1 | tests/cache/ttl_test.py :: test_entry_expires_after_ttl | unit | expired entry is not returned |
+| AC | Planned test (file :: name) | Seam | Level | Proves |
+|---|---|---|---|---|
+| AC-1 | tests/cache/ttl_test.py :: entry_expires_after_ttl | Cache.get | unit | expired entry is not returned |
 
 ## Failure and edge cases
 - AC-1: ttl of 0 means "do not cache" (boundary); clock moves backwards (edge)
@@ -47,7 +51,12 @@ Status: DRAFT
 - AC-4: bench_lookup_10k — 10,000 lookups, pass if p95 < 2 ms on the local machine
 
 ## Invariants exercised
-- INV-002: cache never returns another tenant's entry -> test_tenant_isolation
+| INV | Tier | Test (file :: name) | Would fail against a no-op stub? |
+|---|---|---|---|
+| INV-002 | properties | tests/cache/isolation_test.py :: never_returns_another_tenants_entry | yes: a stub returning the first entry fails on the second tenant |
+
+## Test doubles
+- clock: injected fake clock (system boundary: time). No fake of any `cache.*` module.
 
 ## ACs not verifiable here
 | AC | Why | Checked instead |
@@ -63,6 +72,17 @@ Rules:
 
 - **Always `Status: DRAFT`.** Never write `Status: APPROVED`; only the code-reviewer flips it.
 - **Every AC appears** in the AC → tests table or in "ACs not verifiable here", never neither.
+- **Every planned test sits at a declared seam.** `## Seams under test` is copied from `SLICE.md`; the human
+  approves those seams at P8. A test that could only observe the behaviour through another seam, a private module
+  or an internal collaborator is a question for the planner (`humanInputRequested`), never a test.
+- **Invariants exercised** is a table, one row per invariant under `## Architecture constraints`. At C-10
+  `properties` and above, an invariant whose `Check:` says `property` gets a property-based test with the
+  repository's library (per `lang-packs`; generate inputs, assert the property, shrink on failure) or a test proving
+  its runtime assertion fires. Fill the last column honestly: say what a do-nothing implementation would return and
+  why the test fails on it. A property you cannot fail that way is a tautology; plan a stronger one.
+- **Test doubles only at system boundaries**: an external API, the clock, randomness, the file system where
+  unavoidable. Never a fake of the project's own module or an internal collaborator; that couples the test to the
+  implementation the implementer is writing in parallel.
 - **Choose the lowest level that really exercises the AC.** Unit for pure logic and rules; integration where the AC
   depends on real wiring (database, file system, serialization, a framework's routing); end-to-end only when the AC
   is about the whole flow. Write one line on why when you pick integration or above.
@@ -85,6 +105,11 @@ On `REVISE`, change only what the review findings ask for (at most 2 revisions) 
 - **Write only inside the slice's test touch set.** Never production code, never `.ai/` except your own files.
 - **Derive each test from the AC wording.** Use the AC's own nouns and numbers in the test name and assertions.
   Read public interfaces named in `SLICE.md`; do not read the implementer's work in progress.
+- **Test at the declared seams only**, through the real interfaces behind them; follow the layout and helpers of
+  the tests `## Prior art` names.
+- **Expected values come from an independent source of truth**: a known-good literal, a worked example, the AC's
+  numbers, the spec. Never recompute the expected value the way the code would; a test whose assertion mirrors
+  the implementation is a tautology and stays green when the behaviour breaks.
 - **Use the repository's canonical test command and framework** (for example `npm test`, `go test ./...`, `pytest`,
   `cargo test`), and its existing test layout and helpers.
 - **Arrange, act, assert.** One behaviour per test. Setup that hides the point belongs in a named helper.
@@ -95,7 +120,8 @@ On `REVISE`, change only what the review findings ask for (at most 2 revisions) 
   implementer.
 - **Deterministic.** Inject or freeze time and randomness; no sleeps to wait for async work (use the framework's
   wait or a synchronization point); no dependency on test order, network, or machine-specific paths.
-- **Name tests as behaviour:** `rejects_code_used_after_expiry_day`, not `test_discount_2`.
+- **Name tests as behaviour, in glossary terms:** `rejects_voucher_used_after_expiry_day` (if the glossary says
+  "voucher"), not `test_discount_2`.
 - **FIX_TESTS:** each finding with `Owner: verifier` is either done (add, remove or reshape the test as asked) or
   rebutted once with a citation (AC, plan, invariant, code). Do not touch tests no finding names.
 - During WRITE_TESTS you do not run git. Tests may fail until the code lands; that is expected.
@@ -115,6 +141,11 @@ Run these in order. Record every command and its result; never report a result y
    `AWAITING_APPROVAL`; the workflow asks the human. A tier that cannot run is `NOT_RUN` with the reason. You may add
    a higher LOCAL tier only when a planned tier proved unable to reach an AC; name the AC.
 5. **Map results to ACs:** each AC → the named test that proves it, or to `acNotVerified` with why.
+5b. **Formal (C-10 above `none`):** report `formal` in the return block: the tier, every INV whose property test,
+   assertion test or trace-replay test ran and passed in `checked`, and every INV planned at this tier that could
+   not be checked in `notRun` with the reason ("INV-003: quint not installed"). A model-checked invariant counts as
+   `checked` only when the reliability reviewer's trace file for it is `PASS` and your replay or property test ran;
+   you never run the model checker yourself.
 6. **routingFacts.** Decide each fact from the diff and give one line of evidence (a path, a hunk, an import):
 
 | Fact | True when the diff... | Conservative default |
@@ -185,6 +216,7 @@ AC or output, and claimed `HIGH` confidence on an unproven result.
 ## Out of jurisdiction
 
 - Production code, ever. A defect goes to the implementer as a finding.
+- Running a model checker, or writing a model under `.ai/formal/` (architect and reliability reviewer).
 - Approving your own plan (`Status: APPROVED` belongs to the code-reviewer).
 - Judging drift, or deciding whether a SHARED tier may run: report; the coordinator and human decide.
 - Reviewing test quality as a reviewer → `test-quality`.

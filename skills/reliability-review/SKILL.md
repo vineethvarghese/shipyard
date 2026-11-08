@@ -5,13 +5,15 @@ description: >
   concurrency, failure and lifecycle model, and in SLICE and RECHECK mode when a slice touches async code,
   concurrency, synchronization, retries, timeouts, cancellation, networking, streaming, resource lifetime, shared
   mutable state or deployment lifecycle. Gives the six-part finding discipline (failure scenario, plausibility,
-  impact, current behaviour, why insufficient, minimum correction), the probes, and the THEORETICAL severity cap.
-  Not for API shape, consumer migration, or steady-state speed (performance).
+  impact, current behaviour, why insufficient, minimum correction), the probes, the THEORETICAL severity cap, and
+  the model-checked invariant procedure (run the models under .ai/formal/ with scripts/formal_check.py, require the
+  planted fault to fail, render a counterexample trace as a plain-English scenario). Not for API shape, consumer
+  migration, or steady-state speed (performance).
 ---
 
 # Reliability review
 
-Version 1.0.0 · used by reliability-review (`shipyard:reliability-reviewer`, PLAN, SLICE and RECHECK)
+Version 1.1.0 · used by reliability-review (`shipyard:reliability-reviewer`, PLAN, SLICE and RECHECK)
 
 Assume the happy path works. Your job is to find **how this fails in production**, and to propose the smallest
 mechanism that stops it. A reliability review that adds a circuit breaker for an event that cannot happen has made
@@ -74,6 +76,43 @@ Category is `reliability/<probe>`.
 
 Report in the return block's `extras`: `plausibility` (`{LIKELY: n, POSSIBLE: n, THEORETICAL: n}`) and
 `unboundedResources` (list, or `[]`).
+
+## Invariants as input, at every tier
+
+`INVARIANTS.md` is your first read. At C-10 `invariants` and above every invariant has a `Violated by:` sequence and,
+when stateful, a state-by-event table: look for the **missing cells** (a state and event pair with no row is a
+scenario nobody wrote down) and for a `Violated by:` that is reachable in the planned design. Either is a finding
+with the six parts; the table row or the missing cell is its evidence.
+
+## Model-checked invariants (C-10 `model-checked`, PLAN mode)
+
+When the plan brief says the tier is `model-checked`, the architect has written one small model per concurrency,
+lifecycle or partial-failure invariant to `.ai/formal/INV-nnn.qnt`, each with a **planted fault**: a deliberately
+broken action, marked in a comment, that must make the checker fail. You run the models; you never write them.
+
+1. Run each model with the plugin's script, which finds the tooling, caps the run and renders the trace:
+
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/formal_check.py" run .ai/formal/INV-003.qnt --invariant executeAtMostOnce \
+       --out .ai/formal/INV-003.trace.itf.json --timeout 300
+   ```
+
+   It prints a JSON summary (`status`: `PASS`, `VIOLATED`, `NOT_RUN`, `ERROR` or `UNEXPECTED`; the checker and
+   bound; `steps`; `markdown`, the trace rendered as a step table). Then run the sibling planted-fault model with
+   `--expect VIOLATED` (`.ai/formal/INV-003.fault.qnt`): that run must come back `VIOLATED`, or the script reports
+   `UNEXPECTED`. Never install tooling (the readonly-bash hook stops you anyway): a `NOT_RUN`
+   with its reason is a correct result, and the coordinator carries it to the human as a risk.
+2. A **`VIOLATED` run** is a finding with the six parts: the trace is the failure scenario (paste the rendered step
+   table into `Evidence:`), plausibility from the events the trace needs, impact from the invariant's
+   `Why it matters:`, and the minimum correction is usually a restated invariant plus the smallest mechanism
+   (an idempotency key, a bound, a fence), owner `architect`. Precede the table with two or three plain sentences
+   that tell the story of the trace in glossary terms; the human reads those, not the table.
+3. A **planted fault that passes** is a finding ("model too weak to fail", owner `architect`): the invariant or the
+   model is vacuous and proves nothing.
+4. A **`PASS`** is bounded evidence, never a proof. Say `model-checked (bounded, N steps)` and name the bound.
+5. **Never add machinery because a model could be written for it.** Tier 2 is for the invariants the reliability
+   probes already tag; a checked model of a create-read-update flow is cost without signal, and the simplicity
+   reviewer may file against it.
 
 ## Minimum correction, not maximum machinery
 
@@ -140,3 +179,4 @@ proposed for a risk nobody has described.
 - Steady-state speed and cost on hot paths → `performance` (you use it for resource reasoning; behaviour at and
   beyond the bound is yours).
 - Security boundaries under attack → security-review.
+- Writing or editing a model under `.ai/formal/` → the architect. You run and interpret; you file findings.

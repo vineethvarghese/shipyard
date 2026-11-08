@@ -34,7 +34,7 @@ If you have a project half-way through the old framework, see [Moving a running 
 | P1 Discovery | P1 Scan |
 | — | P2 Brainstorm and narrow (elephant/goldfish) |
 | P2 Draft | P3 Draft |
-| P3 Grilling | P4 Questions (gate) |
+| P3 Grilling | P4 Grill (gate; rounds until shared understanding) |
 | P4 Plan critique | P5 Plan critique |
 | P5 Refine | P6 Refine |
 | P6 Delivery planning | P7 Delivery planning (+ readiness goldfish per slice) |
