@@ -15,10 +15,10 @@ All notable changes to Shipyard are recorded here. The format follows
   Registry limits `grillRounds` (3) and `grillQuestionsPerRound` (7).
 - **Discovery `ELEPHANT` mode**: the sealed elephant take runs at DEEP compute, separately from the STANDARD scan.
 - **Spec structure**: `PROJECT.md ## User stories`; `SLICE.md ## Seams under test` and `## Prior art`; the readiness
-  goldfish checks a seam exists; `PLAN.HUMAN.md` lists the seams and the properties being relied on.
+  goldfish checks a seam exists or is precisely specified as planned; `PLAN.HUMAN.md` lists the seams and the properties being relied on.
 - **Test discipline**: tests only at declared seams, doubles only at system boundaries, expected values from an
   independent source of truth, glossary-based names; `TEST_PLAN.md` gains `## Seams under test`,
-  an `## Invariants exercised` table with a "would fail against a no-op stub?" column and `## Test doubles`;
+  an `## Invariants exercised` table with a "violating implementation it fails against" column and `## Test doubles`;
   code-reviewer checks 10–12.
 - **Formal rigour C-10** ([ADR-0009](docs/decisions/ADR-0009-formal-rigour-tiers.md)): `none` | `invariants` |
   `properties` | `model-checked`. Extended invariant blocks with plain English and state tables; property tests
