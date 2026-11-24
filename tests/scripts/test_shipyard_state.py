@@ -118,6 +118,19 @@ class Transitions(StateTestCase):
         self.assertIn("$.status", proc.stderr)
         self.assertEqual(self.read(), before)
 
+    def test_accepts_state_written_by_copilot_port(self):
+        s = self.read()
+        s["activeRole"] = "architect"
+        s["gates"] = [{"gate": "P0", "by": "octocat", "at": "2026-11-24T10:00:00+00:00"},
+                      {"gate": "MERGE", "by": "octocat", "at": "2026-11-24T11:00:00+00:00", "slice": "01"}]
+        with open(os.path.join(self.repo, ".ai", "state.json"), "w") as fh:
+            json.dump(s, fh)
+        proc = self.state("set-status", "DISCOVERY")
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        after = self.read()
+        self.assertEqual((after["activeRole"], after["gates"]), (s["activeRole"], s["gates"]))
+        self.assertSchemaValid()
+
     def test_set_slice_default_branch_and_clear(self):
         self.assertEqual(self.state("set-slice", "01").returncode, 0)
         s = self.read()

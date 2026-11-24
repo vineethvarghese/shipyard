@@ -8,6 +8,10 @@ All notable changes to Shipyard are recorded here. The format follows
 
 ### Added
 
+- `state` contract 1.3.0: optional `activeRole` and `gates`, written by the GitHub Copilot port
+  ([shipyard-copilot](https://github.com/vineethvarghese/shipyard-copilot)). Shipyard never writes them but now
+  accepts them, so a project started under Copilot can be continued here.
+
 - **P4 grill** ([ADR-0008](docs/decisions/ADR-0008-grill-at-p4.md)): discovery returns a question tree (kind,
   dependsOn, status); the coordinator asks the frontier round by round, discovery `GRILL` recomputes between
   rounds, terms land in a new `.ai/GLOSSARY.md` as they are settled, answers that are hard to reverse, surprising
